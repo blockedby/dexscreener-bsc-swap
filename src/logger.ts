@@ -11,7 +11,7 @@ export function info(message: string): void {
  * @param message - The message to log
  */
 export function error(message: string): void {
-  console.log(`[ERROR] ${message}`);
+  console.error(`[ERROR] ${message}`);
 }
 
 /**

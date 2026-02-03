@@ -45,24 +45,34 @@ describe('logger', () => {
   });
 
   describe('error', () => {
-    it('should log message with [ERROR] prefix', () => {
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should log message with [ERROR] prefix to stderr', () => {
       error('Swap failed: insufficient liquidity');
-      expect(consoleSpy).toHaveBeenCalledWith('[ERROR] Swap failed: insufficient liquidity');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ERROR] Swap failed: insufficient liquidity');
     });
 
     it('should handle network errors', () => {
       error('Network error: request timeout');
-      expect(consoleSpy).toHaveBeenCalledWith('[ERROR] Network error: request timeout');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ERROR] Network error: request timeout');
     });
 
     it('should handle contract errors', () => {
       error('Contract execution reverted: INSUFFICIENT_OUTPUT_AMOUNT');
-      expect(consoleSpy).toHaveBeenCalledWith('[ERROR] Contract execution reverted: INSUFFICIENT_OUTPUT_AMOUNT');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ERROR] Contract execution reverted: INSUFFICIENT_OUTPUT_AMOUNT');
     });
 
     it('should handle empty string message', () => {
       error('');
-      expect(consoleSpy).toHaveBeenCalledWith('[ERROR] ');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ERROR] ');
     });
   });
 
