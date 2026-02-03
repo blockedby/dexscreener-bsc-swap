@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   Token,
   DexscreenerPair,
+  DexscreenerResponse,
   PoolInfo,
   SwapParams,
   Config,
@@ -111,6 +112,75 @@ describe('types', () => {
     });
   });
 
+  describe('DexscreenerResponse', () => {
+    it('should wrap an array of DexscreenerPair objects', () => {
+      const response: DexscreenerResponse = {
+        pairs: [
+          {
+            chainId: 'bsc',
+            pairAddress: '0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e',
+            baseToken: {
+              address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
+              name: 'Ethereum Token',
+              symbol: 'ETH',
+            },
+            quoteToken: {
+              address: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+              name: 'Wrapped BNB',
+              symbol: 'WBNB',
+            },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0x62fcb3c1794fb95bd8b1a97f6ad5d8a7e4943a1e',
+            labels: ['v3'],
+            liquidity: { usd: 1545086.24 },
+          },
+        ],
+      };
+
+      expect(response.pairs).toHaveLength(1);
+      expect(response.pairs[0].chainId).toBe('bsc');
+      expect(response.pairs[0].pairAddress).toBe('0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e');
+      expect(response.pairs[0].labels).toEqual(['v3']);
+    });
+
+    it('should allow empty pairs array', () => {
+      const emptyResponse: DexscreenerResponse = {
+        pairs: [],
+      };
+
+      expect(emptyResponse.pairs).toHaveLength(0);
+    });
+
+    it('should allow multiple pairs in the response', () => {
+      const response: DexscreenerResponse = {
+        pairs: [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xPair1',
+            baseToken: { address: '0x...', name: 'Token1', symbol: 'TK1' },
+            quoteToken: { address: '0x...', name: 'WBNB', symbol: 'WBNB' },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/pair1',
+            labels: ['v2'],
+          },
+          {
+            chainId: 'bsc',
+            pairAddress: '0xPair2',
+            baseToken: { address: '0x...', name: 'Token1', symbol: 'TK1' },
+            quoteToken: { address: '0x...', name: 'WBNB', symbol: 'WBNB' },
+            dexId: 'biswap',
+            url: 'https://dexscreener.com/bsc/pair2',
+            labels: ['v2'],
+          },
+        ],
+      };
+
+      expect(response.pairs).toHaveLength(2);
+      expect(response.pairs[0].dexId).toBe('pancakeswap');
+      expect(response.pairs[1].dexId).toBe('biswap');
+    });
+  });
+
   describe('PoolInfo', () => {
     it('should have pairAddress, poolType, dexId, and liquidity', () => {
       const pool: PoolInfo = {
@@ -147,19 +217,50 @@ describe('types', () => {
   });
 
   describe('SwapParams', () => {
-    it('should have tokenAddress, amountIn (bigint), slippage, and recipient', () => {
+    it('should have all required fields for contract compatibility', () => {
       const params: SwapParams = {
-        tokenAddress: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
-        amountIn: 1000000000000000000n, // 1 ETH in wei
-        slippage: 1,
+        pairAddress: '0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e',
+        tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB for buy
+        amountIn: 1000000000000000000n, // 1 BNB in wei
+        amountOutMin: 950000000000000000n, // Calculated from slippage
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
+        poolType: 'v3',
       };
 
-      expect(params.tokenAddress).toBe('0x2170Ed0880ac9A755fd29B2688956BD959F933F8');
+      expect(params.pairAddress).toBe('0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e');
+      expect(params.tokenIn).toBe('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c');
       expect(params.amountIn).toBe(1000000000000000000n);
       expect(typeof params.amountIn).toBe('bigint');
-      expect(params.slippage).toBe(1);
+      expect(params.amountOutMin).toBe(950000000000000000n);
+      expect(typeof params.amountOutMin).toBe('bigint');
       expect(params.recipient).toBe('0x742d35Cc6634C0532925a3b844Bc9e7595f12345');
+      expect(params.poolType).toBe('v3');
+    });
+
+    it('should work with v2 pool type', () => {
+      const params: SwapParams = {
+        pairAddress: '0xPancakeV2Pair',
+        tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        amountIn: 500000000000000000n, // 0.5 BNB
+        amountOutMin: 475000000000000000n,
+        recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
+        poolType: 'v2',
+      };
+
+      expect(params.poolType).toBe('v2');
+    });
+
+    it('should work with v3 pool type', () => {
+      const params: SwapParams = {
+        pairAddress: '0xPancakeV3Pool',
+        tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        amountIn: 500000000000000000n,
+        amountOutMin: 475000000000000000n,
+        recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
+        poolType: 'v3',
+      };
+
+      expect(params.poolType).toBe('v3');
     });
   });
 

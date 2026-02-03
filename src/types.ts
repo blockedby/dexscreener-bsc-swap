@@ -32,6 +32,13 @@ export interface DexscreenerPair {
 }
 
 /**
+ * Dexscreener API response wrapper
+ */
+export interface DexscreenerResponse {
+  pairs: DexscreenerPair[];
+}
+
+/**
  * Pool label type - v2 or v3 only
  */
 export type PoolLabel = 'v2' | 'v3';
@@ -50,10 +57,12 @@ export interface PoolInfo {
  * Parameters for executing a swap
  */
 export interface SwapParams {
-  tokenAddress: string;
-  amountIn: bigint;
-  slippage: number;
-  recipient: string;
+  pairAddress: string;      // Pool address from Dexscreener
+  tokenIn: string;          // Token being swapped in (WBNB address for buy)
+  amountIn: bigint;         // Amount in wei
+  amountOutMin: bigint;     // Calculated from slippage, for contract
+  recipient: string;        // Address to receive tokens
+  poolType: PoolLabel;      // v2 or v3 - determines which contract function
 }
 
 /**
