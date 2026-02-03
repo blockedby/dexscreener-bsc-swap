@@ -67,6 +67,9 @@ contract UniversalSwap {
     error ZeroAmount();
     error ZeroAddress();
     error TransferFailed();
+    error InvalidCallbackCaller();
+    error InsufficientInputAmount();
+    error InsufficientLiquidity();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Events
@@ -106,6 +109,9 @@ contract UniversalSwap {
     // ═══════════════════════════════════════════════════════════════════════════
     // State (for V3 callback)
     // ═══════════════════════════════════════════════════════════════════════════
+
+    /// @dev Expected pool address for V3 callback validation (security)
+    address private _expectedPool;
 
     /// @dev Temporary storage for V3 callback data
     struct V3CallbackData {
@@ -209,15 +215,19 @@ contract UniversalSwap {
         pairContract.swap(amount0Out, amount1Out, recipient, new bytes(0));
     }
 
-    /// @dev Safe transferFrom with error handling
+    /// @dev Safe transferFrom with error handling for non-standard ERC20s
     function _safeTransferFrom(
         address token,
         address from,
         address to,
         uint256 amount
     ) internal {
-        bool success = IERC20(token).transferFrom(from, to, amount);
-        if (!success) revert TransferFailed();
+        (bool success, bytes memory returndata) = token.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount)
+        );
+        if (!success || (returndata.length > 0 && !abi.decode(returndata, (bool)))) {
+            revert TransferFailed();
+        }
     }
 
     /// @dev Calculate output amount for V2 swap using constant product formula
@@ -230,8 +240,8 @@ contract UniversalSwap {
         uint256 reserveIn,
         uint256 reserveOut
     ) internal pure returns (uint256 amountOut) {
-        require(amountIn > 0, "INSUFFICIENT_INPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "INSUFFICIENT_LIQUIDITY");
+        if (amountIn == 0) revert InsufficientInputAmount();
+        if (reserveIn == 0 || reserveOut == 0) revert InsufficientLiquidity();
 
         // Fee: 0.3% -> amountIn * 997 / 1000
         uint256 amountInWithFee = amountIn * 997;
@@ -309,6 +319,9 @@ contract UniversalSwap {
         // Set price limit based on direction
         uint160 sqrtPriceLimitX96 = zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1;
 
+        // Set expected pool for callback validation (security)
+        _expectedPool = address(poolContract);
+
         // Execute swap (positive amountSpecified = exact input)
         poolContract.swap(
             recipient,
@@ -317,6 +330,9 @@ contract UniversalSwap {
             sqrtPriceLimitX96,
             data
         );
+
+        // Clear expected pool after swap completes
+        _expectedPool = address(0);
     }
 
     /// @dev Internal callback handler for V3 swaps
@@ -325,15 +341,22 @@ contract UniversalSwap {
         int256 amount1Delta,
         bytes calldata data
     ) internal {
+        // Validate caller is the expected pool (security)
+        if (msg.sender != _expectedPool) revert InvalidCallbackCaller();
+
         // Decode callback data
         V3CallbackData memory decoded = abi.decode(data, (V3CallbackData));
 
         // Determine amount to pay (positive delta = amount owed to pool)
         uint256 amountToPay = amount0Delta > 0 ? uint256(amount0Delta) : uint256(amount1Delta);
 
-        // Transfer tokens from original payer to pool
-        bool success = IERC20(decoded.tokenIn).transferFrom(decoded.payer, msg.sender, amountToPay);
-        if (!success) revert TransferFailed();
+        // Transfer tokens from original payer to pool (using safe transfer for non-standard ERC20s)
+        (bool success, bytes memory returndata) = decoded.tokenIn.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, decoded.payer, msg.sender, amountToPay)
+        );
+        if (!success || (returndata.length > 0 && !abi.decode(returndata, (bool)))) {
+            revert TransferFailed();
+        }
     }
 
     /// @notice Uniswap V3 swap callback
