@@ -7,11 +7,6 @@ import { info, error } from './logger';
 import type { SwapParams, DexscreenerPair } from './types';
 
 /**
- * Default slippage percentage when not provided via CLI or config
- */
-const DEFAULT_SLIPPAGE = 1;
-
-/**
  * Format liquidity as USD string with commas
  */
 function formatLiquidity(liquidity: number): string {
@@ -42,10 +37,10 @@ export async function runSwap(
   // Load configuration
   const config = loadConfig();
 
-  // Determine slippage: CLI override > config > default
+  // Determine slippage: CLI override > config
   const slippage = slippageOverride
     ? parseFloat(slippageOverride)
-    : config.slippage ?? DEFAULT_SLIPPAGE;
+    : config.slippage;
 
   // Fetch pools from Dexscreener
   info(`Fetching pools for ${tokenAddress}...`);

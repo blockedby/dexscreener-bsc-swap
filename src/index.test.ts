@@ -184,13 +184,10 @@ describe('CLI index.ts', () => {
       );
     });
 
-    it('should use default slippage (1%) when neither CLI nor config provides it', async () => {
-      const configWithoutSlippage = { ...mockConfig, slippage: 1 };
-      (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(configWithoutSlippage);
-
+    it('should use config slippage when CLI slippage not provided', async () => {
       await runSwap('0xTokenAddress', '0.01');
 
-      // calculateAmountOutMin should be called with slippage = 1
+      // calculateAmountOutMin should be called with config slippage = 1
       expect(calculateAmountOutMin).toHaveBeenCalledWith(
         expect.any(BigInt),
         1
