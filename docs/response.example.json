@@ -1,0 +1,1688 @@
+{
+  "schemaVersion": "1.0.0",
+  "pairs": [
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x62fcb3c1794fb95bd8b1a97f6ad5d8a7e4943a1e",
+      "pairAddress": "0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9120",
+      "priceUsd": "2209.81",
+      "txns": {
+        "m5": {
+          "buys": 82,
+          "sells": 101
+        },
+        "h1": {
+          "buys": 1336,
+          "sells": 1470
+        },
+        "h6": {
+          "buys": 7397,
+          "sells": 6818
+        },
+        "h24": {
+          "buys": 17156,
+          "sells": 16619
+        }
+      },
+      "volume": {
+        "h24": 5787941.36,
+        "h6": 3145670.32,
+        "h1": 664287.76,
+        "m5": 58442.82
+      },
+      "priceChange": {
+        "m5": 0.37,
+        "h1": 3.94,
+        "h6": -4.46,
+        "h24": -5.2
+      },
+      "liquidity": {
+        "usd": 1545086.24,
+        "base": 611.2559,
+        "quote": 256.07931
+      },
+      "fdv": 1336900254,
+      "marketCap": 1336900254,
+      "pairCreatedAt": 1681625414000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0xd0e226f674bbf064f54ab47f42473ff80db98cba",
+      "pairAddress": "0xD0e226f674bBf064f54aB47F42473fF80DB98CBA",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9132",
+      "priceUsd": "2210.75",
+      "txns": {
+        "m5": {
+          "buys": 22,
+          "sells": 29
+        },
+        "h1": {
+          "buys": 534,
+          "sells": 552
+        },
+        "h6": {
+          "buys": 2591,
+          "sells": 2489
+        },
+        "h24": {
+          "buys": 5393,
+          "sells": 5302
+        }
+      },
+      "volume": {
+        "h24": 10003668.14,
+        "h6": 4494682.2,
+        "h1": 927172.71,
+        "m5": 32089.51
+      },
+      "priceChange": {
+        "m5": 0.46,
+        "h1": 3.98,
+        "h6": -4.43,
+        "h24": -5.21
+      },
+      "liquidity": {
+        "usd": 7605771.47,
+        "base": 3015.278,
+        "quote": 1238.3675
+      },
+      "fdv": 1337470042,
+      "marketCap": 1337470042,
+      "pairCreatedAt": 1680536288000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/bsc/0x0f338ec12d3f7c3d77a4b9fcc1f95f3fb6ad0ea6",
+      "pairAddress": "0x0f338Ec12d3f7C3D77A4B9fcC1f95F3FB6AD0EA6",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9126",
+      "priceUsd": "2208.66",
+      "txns": {
+        "m5": {
+          "buys": 21,
+          "sells": 24
+        },
+        "h1": {
+          "buys": 469,
+          "sells": 571
+        },
+        "h6": {
+          "buys": 2366,
+          "sells": 2455
+        },
+        "h24": {
+          "buys": 4176,
+          "sells": 4438
+        }
+      },
+      "volume": {
+        "h24": 5974828.55,
+        "h6": 4044586.85,
+        "h1": 913312.99,
+        "m5": 31563.36
+      },
+      "priceChange": {
+        "m5": 0.35,
+        "h1": 3.86,
+        "h6": -4.53,
+        "h24": -5.28
+      },
+      "liquidity": {
+        "usd": 2220109.3,
+        "base": 646.8316,
+        "quote": 1043.764
+      },
+      "fdv": 1336205669,
+      "marketCap": 1336205669,
+      "pairCreatedAt": 1678911207000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "squadswap",
+      "url": "https://dexscreener.com/bsc/0xb6bb744fb59fa399d09f67ae3634942f533b577f",
+      "pairAddress": "0xb6Bb744FB59fa399D09f67Ae3634942F533B577f",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9123",
+      "priceUsd": "2210.037",
+      "txns": {
+        "m5": {
+          "buys": 21,
+          "sells": 18
+        },
+        "h1": {
+          "buys": 395,
+          "sells": 387
+        },
+        "h6": {
+          "buys": 1719,
+          "sells": 1793
+        },
+        "h24": {
+          "buys": 3423,
+          "sells": 3512
+        }
+      },
+      "volume": {
+        "h24": 1133740.99,
+        "h6": 601037.51,
+        "h1": 135032.04,
+        "m5": 6885.5
+      },
+      "priceChange": {
+        "m5": 0.39,
+        "h1": 3.93,
+        "h6": -4.49,
+        "h24": -5.23
+      },
+      "liquidity": {
+        "usd": 116509.8,
+        "base": 26.5864,
+        "quote": 76.1057
+      },
+      "fdv": 1337037044,
+      "marketCap": 1337037044,
+      "pairCreatedAt": 1740939265000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x74e4716e431f45807dcf19f284c7aa99f18a4fbc",
+      "pairAddress": "0x74E4716E431f45807DCF19f284c7aA99F18a4fbc",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9101",
+      "priceUsd": "2204.40",
+      "txns": {
+        "m5": {
+          "buys": 3,
+          "sells": 1
+        },
+        "h1": {
+          "buys": 70,
+          "sells": 39
+        },
+        "h6": {
+          "buys": 175,
+          "sells": 403
+        },
+        "h24": {
+          "buys": 523,
+          "sells": 824
+        }
+      },
+      "volume": {
+        "h24": 137594.79,
+        "h6": 63895,
+        "h1": 14917.98,
+        "m5": 719.36
+      },
+      "priceChange": {
+        "m5": 0.38,
+        "h1": 3.87,
+        "h6": -4.33,
+        "h24": -5.39
+      },
+      "liquidity": {
+        "usd": 3005712.32,
+        "base": 681.7501,
+        "quote": 1983.9685
+      },
+      "fdv": 1333631724,
+      "marketCap": 1333631724
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "thena",
+      "url": "https://dexscreener.com/bsc/0x1123e75b71019962cd4d21b0f3018a6412edb63c",
+      "pairAddress": "0x1123E75b71019962CD4d21b0F3018a6412eDb63C",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9120",
+      "priceUsd": "2205.91",
+      "txns": {
+        "m5": {
+          "buys": 5,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 86,
+          "sells": 56
+        },
+        "h6": {
+          "buys": 171,
+          "sells": 239
+        },
+        "h24": {
+          "buys": 330,
+          "sells": 445
+        }
+      },
+      "volume": {
+        "h24": 103613.58,
+        "h6": 64834.89,
+        "h1": 38770,
+        "m5": 1639.83
+      },
+      "priceChange": {
+        "m5": 0.39,
+        "h1": 3.86,
+        "h6": -4.35,
+        "h24": -5.46
+      },
+      "liquidity": {
+        "usd": 131464.23,
+        "base": 48.3199,
+        "quote": 32.8377
+      },
+      "fdv": 1334541900,
+      "marketCap": 1334541900
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x70d8929d04b60af4fb9b58713ebcf18765ade422",
+      "pairAddress": "0x70D8929d04b60Af4fb9B58713eBcf18765aDE422",
+      "labels": [
+        "v1"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9099",
+      "priceUsd": "2204.28",
+      "txns": {
+        "m5": {
+          "buys": 3,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 36,
+          "sells": 13
+        },
+        "h6": {
+          "buys": 70,
+          "sells": 121
+        },
+        "h24": {
+          "buys": 203,
+          "sells": 295
+        }
+      },
+      "volume": {
+        "h24": 22159.95,
+        "h6": 11112.52,
+        "h1": 2842.27,
+        "m5": 158.68
+      },
+      "priceChange": {
+        "m5": 0.58,
+        "h1": 4.06,
+        "h6": -4.36,
+        "h24": -5.46
+      },
+      "liquidity": {
+        "usd": 502847.59,
+        "base": 114.06142,
+        "quote": 331.9126
+      },
+      "fdv": 1333556198,
+      "marketCap": 1333556198
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "uniswap",
+      "url": "https://dexscreener.com/bsc/0x4fb87838a29b37598099ef5aa6b3fbeeef987c50",
+      "pairAddress": "0x4fb87838a29b37598099EF5Aa6B3FBEeeF987C50",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9091",
+      "priceUsd": "2195.42",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 58,
+          "sells": 2
+        },
+        "h6": {
+          "buys": 84,
+          "sells": 158
+        },
+        "h24": {
+          "buys": 234,
+          "sells": 361
+        }
+      },
+      "volume": {
+        "h24": 95327.04,
+        "h6": 46619.92,
+        "h1": 10210.1,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 3.24,
+        "h6": -4.7,
+        "h24": -5.92
+      },
+      "liquidity": {
+        "usd": 120056.92,
+        "base": 44.007601,
+        "quote": 31.06189
+      },
+      "fdv": 1328197309,
+      "marketCap": 1328197309,
+      "pairCreatedAt": 1678897542000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x7865ad24628060a3ab3f6b95913b01b70ca7327c",
+      "pairAddress": "0x7865ad24628060a3AB3f6b95913b01B70Ca7327C",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0xB72962568345253f71A18318D67E13A282b187E6",
+        "name": "ETH Fan Token Ecosystem",
+        "symbol": "EFT"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.00000000003919",
+      "priceUsd": "0.00000002968",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 5,
+          "sells": 1
+        },
+        "h6": {
+          "buys": 38,
+          "sells": 2
+        },
+        "h24": {
+          "buys": 184,
+          "sells": 9
+        }
+      },
+      "volume": {
+        "h24": 6513.34,
+        "h6": 484.45,
+        "h1": 28.96,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 2.55,
+        "h6": -1.96,
+        "h24": -0.26
+      },
+      "liquidity": {
+        "usd": 1467128.82,
+        "base": 24714168374851,
+        "quote": 968.568
+      },
+      "fdv": 14242924,
+      "marketCap": 14242924,
+      "pairCreatedAt": 1643863512000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "biswap",
+      "url": "https://dexscreener.com/bsc/0x5bf6941f029424674bb93a43b79fc46bf4a67c21",
+      "pairAddress": "0x5bf6941f029424674bb93A43b79fc46bF4A67c21",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9101",
+      "priceUsd": "2204.42",
+      "txns": {
+        "m5": {
+          "buys": 3,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 31,
+          "sells": 10
+        },
+        "h6": {
+          "buys": 62,
+          "sells": 107
+        },
+        "h24": {
+          "buys": 182,
+          "sells": 300
+        }
+      },
+      "volume": {
+        "h24": 12338.56,
+        "h6": 6211.77,
+        "h1": 1520.8,
+        "m5": 84.19
+      },
+      "priceChange": {
+        "m5": 0.57,
+        "h1": 3.85,
+        "h6": -4.35,
+        "h24": -5.46
+      },
+      "liquidity": {
+        "usd": 279689.49,
+        "base": 63.4383,
+        "quote": 184.6135
+      },
+      "fdv": 1333639056,
+      "marketCap": 1333639056,
+      "pairCreatedAt": 1622011937000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x7d05c84581f0c41ad80ddf677a510360bae09a5a",
+      "pairAddress": "0x7d05c84581f0C41AD80ddf677A510360bae09a5A",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9093",
+      "priceUsd": "2203.84",
+      "txns": {
+        "m5": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 35,
+          "sells": 8
+        },
+        "h6": {
+          "buys": 58,
+          "sells": 126
+        },
+        "h24": {
+          "buys": 174,
+          "sells": 274
+        }
+      },
+      "volume": {
+        "h24": 22609.61,
+        "h6": 8911.83,
+        "h1": 1930.09,
+        "m5": 62.35
+      },
+      "priceChange": {
+        "m5": 0.51,
+        "h1": 3.84,
+        "h6": -4.54,
+        "h24": -5.48
+      },
+      "liquidity": {
+        "usd": 930661.01,
+        "base": 364.3439,
+        "quote": 168.5872
+      },
+      "fdv": 1333288355,
+      "marketCap": 1333288355,
+      "pairCreatedAt": 1680355748000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0xd3d1ba8effbee837df26684e92024385187fea4e",
+      "pairAddress": "0xd3D1BA8eFfBEE837dF26684E92024385187FEA4e",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0x002d3C280f719c4B0444680A8C4B1785b6cC2A59",
+        "name": "ETHFan Burn",
+        "symbol": "$EFB"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.000000006913",
+      "priceUsd": "0.000005234",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 2,
+          "sells": 1
+        },
+        "h6": {
+          "buys": 12,
+          "sells": 1
+        },
+        "h24": {
+          "buys": 48,
+          "sells": 2
+        }
+      },
+      "volume": {
+        "h24": 196.44,
+        "h6": 54.32,
+        "h1": 16.9,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 1.1,
+        "h6": -2.4,
+        "h24": -1.68
+      },
+      "liquidity": {
+        "usd": 960389.18,
+        "base": 91744323270,
+        "quote": 634.297
+      },
+      "fdv": 5122409,
+      "marketCap": 5122409,
+      "pairCreatedAt": 1645519172000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x66e9ded455fbc1016cf4ea0b042f292a0bc69b01",
+      "pairAddress": "0x66E9deD455FbC1016CF4ea0B042F292a0bc69B01",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0xa5a4117999d94BCC743Ced447Ce2c34329180fad",
+        "name": "ETH Fan Burn Peace",
+        "symbol": "$EFBP"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.000000002539",
+      "priceUsd": "0.000001872",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 5,
+          "sells": 0
+        },
+        "h24": {
+          "buys": 39,
+          "sells": 2
+        }
+      },
+      "volume": {
+        "h24": 326.77,
+        "h6": 6.97,
+        "h1": 0.08,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": -0.85,
+        "h6": -4.85,
+        "h24": -4.28
+      },
+      "liquidity": {
+        "usd": 539653.21,
+        "base": 144084794114,
+        "quote": 365.8814
+      },
+      "fdv": 1872681,
+      "marketCap": 1872681,
+      "pairCreatedAt": 1649001280000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x7f5a011b3e0a0f8824f54059654ac52e7a3e47b9",
+      "pairAddress": "0x7F5a011b3e0a0F8824f54059654ac52E7A3e47b9",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0x16dCc0eC78E91e868DCa64bE86aeC62bf7C61037",
+        "name": "EverETH",
+        "symbol": "EverETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.000000000002704",
+      "priceUsd": "0.000000002025",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 0,
+          "sells": 4
+        },
+        "h6": {
+          "buys": 0,
+          "sells": 16
+        },
+        "h24": {
+          "buys": 1,
+          "sells": 19
+        }
+      },
+      "volume": {
+        "h24": 62.64,
+        "h6": 57.31,
+        "h1": 3.44,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 1.36,
+        "h6": -2.98,
+        "h24": -3.26
+      },
+      "liquidity": {
+        "usd": 609774.78,
+        "base": 150515039759507,
+        "quote": 407.081
+      },
+      "fdv": 995058,
+      "marketCap": 766003,
+      "pairCreatedAt": 1629532211000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0x6502530453b1fbacfdd0ed798e583df6f844589e",
+      "pairAddress": "0x6502530453B1Fbacfdd0Ed798E583df6F844589e",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0x69d10c8Bd0de1a9345AFA36819490D8BbCE0E5A3",
+        "name": "ETH SHIBA",
+        "symbol": "$ETHSHIB"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.000000000001251",
+      "priceUsd": "0.0000000009651",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 0,
+          "sells": 1
+        },
+        "h24": {
+          "buys": 0,
+          "sells": 2
+        }
+      },
+      "volume": {
+        "h24": 33.78,
+        "h6": 3.18,
+        "h1": 0,
+        "m5": 0
+      },
+      "priceChange": {
+        "h6": -0.25,
+        "h24": -0.25
+      },
+      "liquidity": {
+        "usd": 208786.85,
+        "base": 108157992994801,
+        "quote": 135.3561
+      },
+      "fdv": 467023,
+      "marketCap": 467023,
+      "pairCreatedAt": 1646915348000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "bakeryswap",
+      "url": "https://dexscreener.com/bsc/0x2fc2ad3c28560c97caca6d2dcf9b38614f48769a",
+      "pairAddress": "0x2fC2aD3c28560C97CAcA6D2DcF9B38614F48769A",
+      "baseToken": {
+        "address": "0x250632378E573c6Be1AC2f97Fcdf00515d0Aa91B",
+        "name": "Binance Beacon ETH",
+        "symbol": "BETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "3.1752",
+      "priceUsd": "2402.83",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 9,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 9,
+          "sells": 27
+        },
+        "h24": {
+          "buys": 26,
+          "sells": 58
+        }
+      },
+      "volume": {
+        "h24": 1751.44,
+        "h6": 901.85,
+        "h1": 205.25,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 3.01,
+        "h6": -4.48,
+        "h24": -6.05
+      },
+      "liquidity": {
+        "usd": 91175.61,
+        "base": 18.9724,
+        "quote": 60.2415
+      },
+      "fdv": 10662313,
+      "marketCap": 10662313
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "apeswap",
+      "url": "https://dexscreener.com/bsc/0xa0c3ef24414ed9c9b456740128d8e63d016a9e11",
+      "pairAddress": "0xA0C3Ef24414ED9C9B456740128d8E63D016A9e11",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9086",
+      "priceUsd": "2203.33",
+      "txns": {
+        "m5": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 23,
+          "sells": 8
+        },
+        "h6": {
+          "buys": 49,
+          "sells": 68
+        },
+        "h24": {
+          "buys": 123,
+          "sells": 159
+        }
+      },
+      "volume": {
+        "h24": 3146.75,
+        "h6": 1597.57,
+        "h1": 385.3,
+        "m5": 7.06
+      },
+      "priceChange": {
+        "m5": 0.36,
+        "h1": 3.61,
+        "h6": -4.4,
+        "h24": -5.47
+      },
+      "liquidity": {
+        "usd": 73763.77,
+        "base": 16.7391,
+        "quote": 48.6889
+      },
+      "fdv": 1332982712,
+      "marketCap": 1332982712
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "mdex",
+      "url": "https://dexscreener.com/bsc/0x82e8f9e7624fa038dff4a39960f5197a43fa76aa",
+      "pairAddress": "0x82E8F9e7624fA038DfF4a39960F5197A43fa76aa",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9083",
+      "priceUsd": "2200.89",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 13,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 19,
+          "sells": 46
+        },
+        "h24": {
+          "buys": 62,
+          "sells": 111
+        }
+      },
+      "volume": {
+        "h24": 1932.49,
+        "h6": 921.87,
+        "h1": 201.12,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 3.59,
+        "h6": -4.39,
+        "h24": -5.71
+      },
+      "liquidity": {
+        "usd": 61101.18,
+        "base": 13.8809,
+        "quote": 40.3707
+      },
+      "fdv": 1331505346,
+      "marketCap": 1331505346
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "pancakeswap",
+      "url": "https://dexscreener.com/bsc/0xfe4819945f5815a1d2a83482cf415a62c9f1b3fe",
+      "pairAddress": "0xfe4819945F5815A1D2a83482cf415a62c9f1b3fe",
+      "labels": [
+        "v2"
+      ],
+      "baseToken": {
+        "address": "0x8dB1D28Ee0d822367aF8d220C0dc7cB6fe9DC442",
+        "name": "ETHPAD.network",
+        "symbol": "ETHPAD"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.0000009678",
+      "priceUsd": "0.0007566",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h24": {
+          "buys": 1,
+          "sells": 0
+        }
+      },
+      "volume": {
+        "h24": 0,
+        "h6": 0,
+        "h1": 0,
+        "m5": 0
+      },
+      "priceChange": {},
+      "liquidity": {
+        "usd": 54370.9,
+        "base": 35930211,
+        "quote": 34.7737
+      },
+      "fdv": 743063,
+      "marketCap": 103657,
+      "pairCreatedAt": 1628051837000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "bakeryswap",
+      "url": "https://dexscreener.com/bsc/0xa50b9c5db61c855d5939aa1a66b26df77745809b",
+      "pairAddress": "0xa50b9c5DB61C855D5939aa1a66B26Df77745809b",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9087",
+      "priceUsd": "2201.15",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 14,
+          "sells": 1
+        },
+        "h6": {
+          "buys": 19,
+          "sells": 43
+        },
+        "h24": {
+          "buys": 56,
+          "sells": 99
+        }
+      },
+      "volume": {
+        "h24": 1497.09,
+        "h6": 736.06,
+        "h1": 160.85,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 3.62,
+        "h6": -4.39,
+        "h24": -5.66
+      },
+      "liquidity": {
+        "usd": 45858.86,
+        "base": 10.4169,
+        "quote": 30.2998
+      },
+      "fdv": 1331666102,
+      "marketCap": 1331666102
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "squadswap",
+      "url": "https://dexscreener.com/bsc/0xa57cc6ea73ebff8df7539b88b9d9ab7573758678",
+      "pairAddress": "0xA57cc6ea73ebFf8Df7539b88b9D9ab7573758678",
+      "labels": [
+        "v3"
+      ],
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9106",
+      "priceUsd": "2204.81",
+      "txns": {
+        "m5": {
+          "buys": 2,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 31,
+          "sells": 8
+        },
+        "h6": {
+          "buys": 47,
+          "sells": 86
+        },
+        "h24": {
+          "buys": 114,
+          "sells": 185
+        }
+      },
+      "volume": {
+        "h24": 9539.95,
+        "h6": 4678.03,
+        "h1": 1230.17,
+        "m5": 55.77
+      },
+      "priceChange": {
+        "m5": 0.35,
+        "h1": 3.68,
+        "h6": -4.32,
+        "h24": -5.48
+      },
+      "liquidity": {
+        "usd": 43199.08,
+        "base": 17.7255,
+        "quote": 5.4357
+      },
+      "fdv": 1333877580,
+      "marketCap": 1333877580,
+      "pairCreatedAt": 1762978967000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "nomiswap",
+      "url": "https://dexscreener.com/bsc/0x13de257cb86a08753df938b6ad30d1a456a863e6",
+      "pairAddress": "0x13dE257cb86a08753Df938b6ad30d1A456A863e6",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9117",
+      "priceUsd": "2205.65",
+      "txns": {
+        "m5": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 21,
+          "sells": 13
+        },
+        "h6": {
+          "buys": 101,
+          "sells": 86
+        },
+        "h24": {
+          "buys": 331,
+          "sells": 291
+        }
+      },
+      "volume": {
+        "h24": 2489.77,
+        "h6": 1211.73,
+        "h1": 278.02,
+        "m5": 7.15
+      },
+      "priceChange": {
+        "m5": 0.26,
+        "h1": 3.6,
+        "h6": -4.41,
+        "h24": -5.61
+      },
+      "liquidity": {
+        "usd": 35844.26,
+        "base": 8.1255,
+        "quote": 23.6595
+      },
+      "fdv": 1334387006,
+      "marketCap": 1334387006,
+      "pairCreatedAt": 1642009124000
+    },
+    {
+      "chainId": "opbnb",
+      "dexId": "cubiswap",
+      "url": "https://dexscreener.com/opbnb/0xcbc14e02f03a19d275ef62f05e5deb963859462c",
+      "pairAddress": "0xcbC14e02f03a19D275eF62f05e5DEb963859462c",
+      "baseToken": {
+        "address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+        "name": "Tether USD",
+        "symbol": "USDT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.001323",
+      "priceUsd": "0.9984",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 1,
+          "sells": 5
+        },
+        "h6": {
+          "buys": 9,
+          "sells": 30
+        },
+        "h24": {
+          "buys": 37,
+          "sells": 57
+        }
+      },
+      "volume": {
+        "h24": 376.22,
+        "h6": 145.49,
+        "h1": 25.77,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 1.99,
+        "h6": 0.85,
+        "h24": 0.62
+      },
+      "liquidity": {
+        "usd": 6853.84,
+        "base": 3432.337,
+        "quote": 4.5429
+      },
+      "fdv": 55515762,
+      "marketCap": 55515762,
+      "pairCreatedAt": 1695464932000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "0x1B8E12F839BD4e73A47adDF76cF7F0097d74c14C",
+      "url": "https://dexscreener.com/bsc/0x58065f6ca40c000c71c110cec47fb57b7cc0b9b9",
+      "pairAddress": "0x58065F6ca40c000c71c110CeC47Fb57b7cc0B9b9",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9088",
+      "priceUsd": "2201.27",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 12,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 16,
+          "sells": 29
+        },
+        "h24": {
+          "buys": 37,
+          "sells": 66
+        }
+      },
+      "volume": {
+        "h24": 941.3,
+        "h6": 472.19,
+        "h1": 104.6,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 4.02,
+        "h6": -4.5,
+        "h24": -5.71
+      },
+      "liquidity": {
+        "usd": 32231.67,
+        "base": 7.3211,
+        "quote": 21.2961
+      },
+      "fdv": 1331732968,
+      "marketCap": 1331732968
+    },
+    {
+      "chainId": "opbnb",
+      "dexId": "derpdex",
+      "url": "https://dexscreener.com/opbnb/0xaf310d32c3c2982a23ce7ec1fe152912595a4c50",
+      "pairAddress": "0xaf310d32c3C2982a23CE7ec1FE152912595A4c50",
+      "baseToken": {
+        "address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+        "name": "Tether USD",
+        "symbol": "USDT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.001325",
+      "priceUsd": "0.9996",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 2,
+          "sells": 7
+        },
+        "h6": {
+          "buys": 12,
+          "sells": 8
+        },
+        "h24": {
+          "buys": 21,
+          "sells": 20
+        }
+      },
+      "volume": {
+        "h24": 71.32,
+        "h6": 38.1,
+        "h1": 13.83,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 2.5,
+        "h6": 1.08,
+        "h24": 0.3
+      },
+      "liquidity": {
+        "usd": 4093.56,
+        "base": 1822.8813,
+        "quote": 3.01105
+      },
+      "fdv": 55582710,
+      "marketCap": 55582710,
+      "pairCreatedAt": 1695309845000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "0x43eBb0cb9bD53A3Ed928Dd662095aCE1cef92D19",
+      "url": "https://dexscreener.com/bsc/0xb8ac66679938d7354dfea4aca56b3e1e0487924d",
+      "pairAddress": "0xb8Ac66679938D7354DFEa4Aca56B3E1E0487924d",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9081",
+      "priceUsd": "2206.52",
+      "txns": {
+        "m5": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 14,
+          "sells": 3
+        },
+        "h6": {
+          "buys": 21,
+          "sells": 41
+        },
+        "h24": {
+          "buys": 56,
+          "sells": 95
+        }
+      },
+      "volume": {
+        "h24": 1157.61,
+        "h6": 586.42,
+        "h1": 145.21,
+        "m5": 2.62
+      },
+      "priceChange": {
+        "m5": 0.65,
+        "h1": 3.76,
+        "h6": -4.22,
+        "h24": -5.33
+      },
+      "liquidity": {
+        "usd": 30913.71,
+        "base": 7.005073,
+        "quote": 20.3714
+      },
+      "fdv": 1334910701,
+      "marketCap": 1334910701,
+      "pairCreatedAt": 1624435706000
+    },
+    {
+      "chainId": "bsc",
+      "dexId": "0xB42E3FE71b7E0673335b3331B3e1053BD9822570",
+      "url": "https://dexscreener.com/bsc/0x04253ab3ff54d2e03b717bf6810a0a2fd228365a",
+      "pairAddress": "0x04253aB3ff54D2E03b717BF6810a0a2Fd228365a",
+      "baseToken": {
+        "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9081",
+      "priceUsd": "2193.069",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 12,
+          "sells": 2
+        },
+        "h6": {
+          "buys": 23,
+          "sells": 42
+        },
+        "h24": {
+          "buys": 61,
+          "sells": 96
+        }
+      },
+      "volume": {
+        "h24": 1149.67,
+        "h6": 587.34,
+        "h1": 122.42,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 3.11,
+        "h6": -4.96,
+        "h24": -5.9
+      },
+      "liquidity": {
+        "usd": 29451.78,
+        "base": 6.7147,
+        "quote": 19.5277
+      },
+      "fdv": 1326771520,
+      "marketCap": 1326771520
+    },
+    {
+      "chainId": "opbnb",
+      "dexId": "thena",
+      "url": "https://dexscreener.com/opbnb/0x8a322bf307aa673424c445f576f2992f381521fb",
+      "pairAddress": "0x8a322BF307Aa673424c445f576F2992F381521FB",
+      "baseToken": {
+        "address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+        "name": "Tether USD",
+        "symbol": "USDT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.001324",
+      "priceUsd": "0.9988",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 1,
+          "sells": 1
+        },
+        "h6": {
+          "buys": 13,
+          "sells": 6
+        },
+        "h24": {
+          "buys": 22,
+          "sells": 27
+        }
+      },
+      "volume": {
+        "h24": 62.07,
+        "h6": 26.74,
+        "h1": 3.88,
+        "m5": 0
+      },
+      "priceChange": {
+        "h1": 2.51,
+        "h6": 0.86,
+        "h24": 0.12
+      },
+      "liquidity": {
+        "usd": 1740.17,
+        "base": 871.1007,
+        "quote": 1.1534
+      },
+      "fdv": 55538725,
+      "marketCap": 55538725,
+      "pairCreatedAt": 1702065520000
+    },
+    {
+      "chainId": "opbnb",
+      "dexId": "0x9e92b57bff702530A0C3bE9ff5fE2c24F95A91F6",
+      "url": "https://dexscreener.com/opbnb/0x55ce9b92f2d0a842e639c354d72f2e85c5382e5f",
+      "pairAddress": "0x55cE9B92f2D0A842e639c354d72f2e85c5382e5F",
+      "baseToken": {
+        "address": "0xE7798f023fC62146e8Aa1b36Da45fb70855a77Ea",
+        "name": "Ethereum Token",
+        "symbol": "ETH"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "2.9781",
+      "priceUsd": "2283.69",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 1,
+          "sells": 0
+        },
+        "h24": {
+          "buys": 4,
+          "sells": 2
+        }
+      },
+      "volume": {
+        "h24": 16.52,
+        "h6": 0,
+        "h1": 0,
+        "m5": 0
+      },
+      "priceChange": {
+        "h6": -1.03,
+        "h24": -1.9
+      },
+      "liquidity": {
+        "usd": 2111.54,
+        "base": 0.2991,
+        "quote": 1.8626
+      },
+      "fdv": 639822,
+      "marketCap": 639822
+    },
+    {
+      "chainId": "opbnb",
+      "dexId": "unknown",
+      "url": "https://dexscreener.com/opbnb/0x8473031bd0d0de10c42851eacbc3711fe7d32cde",
+      "pairAddress": "0x8473031bd0d0dE10C42851Eacbc3711fE7d32CdE",
+      "baseToken": {
+        "address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+        "name": "Tether USD",
+        "symbol": "USDT"
+      },
+      "quoteToken": {
+        "address": "0x4200000000000000000000000000000000000006",
+        "name": "Wrapped BNB",
+        "symbol": "WBNB"
+      },
+      "priceNative": "0.01489",
+      "priceUsd": "11.53",
+      "txns": {
+        "m5": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h1": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h6": {
+          "buys": 0,
+          "sells": 0
+        },
+        "h24": {
+          "buys": 1,
+          "sells": 1
+        }
+      },
+      "volume": {
+        "h24": 0.51,
+        "h6": 0,
+        "h1": 0,
+        "m5": 0
+      },
+      "priceChange": {
+        "h24": 0.32
+      },
+      "liquidity": {
+        "usd": 1219.57,
+        "base": 102.7911,
+        "quote": 0.04352
+      },
+      "fdv": 641472928,
+      "marketCap": 641472928
+    }
+  ]
+}
