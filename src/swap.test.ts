@@ -6,12 +6,14 @@ import {
   getExpectedOutput,
   getGasParams,
   encodeExactInputSingle,
+  encodeV2SwapCommand,
   PANCAKESWAP_V2_ROUTER,
   PANCAKESWAP_V3_ROUTER,
   DEFAULT_BASE_FEE_GWEI,
   BSC_PRIORITY_FEE_GWEI,
   GAS_FEE_BUFFER_PERCENT,
   DEFAULT_V3_POOL_FEE,
+  UNIVERSAL_ROUTER_COMMANDS,
 } from './swap';
 import { SwapParams, Config, PoolLabel } from './types';
 
@@ -326,6 +328,51 @@ describe('swap', () => {
       );
 
       expect(result).toMatch(/^0x/);
+    });
+  });
+
+  describe('encodeV2SwapCommand', () => {
+    const validRecipient = '0x1234567890123456789012345678901234567890';
+    const validTokenOut = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
+    const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+
+    it('should return a hex string starting with 0x', () => {
+      const result = encodeV2SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        [WBNB_ADDRESS, validTokenOut]
+      );
+
+      expect(result).toMatch(/^0x/);
+    });
+
+    it('should encode V2 swap input with correct ABI structure', () => {
+      const result = encodeV2SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        [WBNB_ADDRESS, validTokenOut]
+      );
+
+      // Should be ABI-encoded: (address, uint256, uint256, address[], bool)
+      // Minimum length: 4 bytes selector + 5 * 32 bytes params + dynamic array
+      expect(result.length).toBeGreaterThan(200);
+    });
+
+    it('should set payerIsUser to true', () => {
+      const result = encodeV2SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        [WBNB_ADDRESS, validTokenOut]
+      );
+
+      // payerIsUser (bool=true) is encoded as 0x01 at fixed position (5th param = offset 128)
+      // After 0x prefix: recipient(32) + amountIn(32) + amountOutMin(32) + arrayOffset(32) + payerIsUser(32)
+      // = 2 + 64*4 + 64 = 322, so payerIsUser at chars 258-322
+      const payerIsUserSlot = result.slice(2 + 64*4, 2 + 64*5);
+      expect(payerIsUserSlot).toBe('0000000000000000000000000000000000000000000000000000000000000001');
     });
   });
 

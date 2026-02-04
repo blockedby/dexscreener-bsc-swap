@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Wallet, Contract, parseUnits, Interface } from 'ethers';
+import { JsonRpcProvider, Wallet, Contract, parseUnits, Interface, AbiCoder } from 'ethers';
 import type { SwapParams, Config } from './types';
 
 /**
@@ -237,6 +237,29 @@ export function encodeExactInputSingle(
     amountOutMinimum: amountOutMin,
     sqrtPriceLimitX96: 0n, // No price limit
   }]);
+}
+
+/**
+ * Encode V2 swap command input for Universal Router.
+ * Format: ABI-encoded (recipient, amountIn, amountOutMin, path, payerIsUser)
+ *
+ * @param recipient - Address to receive output tokens
+ * @param amountIn - Input amount in wei
+ * @param amountOutMin - Minimum output amount
+ * @param path - Token path array [tokenIn, tokenOut]
+ * @returns ABI-encoded input bytes
+ */
+export function encodeV2SwapCommand(
+  recipient: string,
+  amountIn: bigint,
+  amountOutMin: bigint,
+  path: string[]
+): string {
+  const abiCoder = AbiCoder.defaultAbiCoder();
+  return abiCoder.encode(
+    ['address', 'uint256', 'uint256', 'address[]', 'bool'],
+    [recipient, amountIn, amountOutMin, path, true]
+  );
 }
 
 /**
