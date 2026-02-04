@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios, { AxiosError } from 'axios';
-import { fetchPools, selectBestPool, withRetry, DexscreenerApiError } from './dexscreener';
-import { DexscreenerPair, PoolInfo } from './types';
+import { fetchPools, selectBestPool, withRetry, DexscreenerApiError, InsufficientLiquidityError } from './dexscreener';
+import type { DexscreenerPair, PoolInfo } from './types';
 import * as logger from './logger';
 
 // Mock axios
@@ -340,9 +340,9 @@ describe('dexscreener', () => {
   });
 
   describe('selectBestPool', () => {
-    it('should return null for empty pairs array', () => {
+    it('should return no_valid_pools for empty pairs array', () => {
       const result = selectBestPool([]);
-      expect(result).toBeNull();
+      expect(result).toEqual({ success: false, reason: 'no_valid_pools' });
     });
 
     it('should filter by chainId === bsc', () => {
@@ -371,8 +371,10 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      expect(result!.pairAddress).toBe('0xbsc');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool.pairAddress).toBe('0xbsc');
+      }
     });
 
     it('should filter by labels containing v2 or v3', () => {
@@ -401,9 +403,11 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      expect(result!.pairAddress).toBe('0xv2pool');
-      expect(result!.poolType).toBe('v2');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool.pairAddress).toBe('0xv2pool');
+        expect(result.pool.poolType).toBe('v2');
+      }
     });
 
     it('should accept pools with v3 labels', () => {
@@ -422,11 +426,13 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      expect(result!.poolType).toBe('v3');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool.poolType).toBe('v3');
+      }
     });
 
-    it('should return null when no labels present', () => {
+    it('should return no_valid_pools when no labels present', () => {
       const pairs: DexscreenerPair[] = [
         {
           chainId: 'bsc',
@@ -441,7 +447,7 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ success: false, reason: 'no_valid_pools' });
     });
 
     it('should sort by liquidity.usd descending and return highest', () => {
@@ -480,9 +486,11 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      expect(result!.pairAddress).toBe('0xhighliq');
-      expect(result!.liquidity).toBe(500000);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool.pairAddress).toBe('0xhighliq');
+        expect(result.pool.liquidity).toBe(500000);
+      }
     });
 
     it('should handle missing liquidity.usd (treat as 0)', () => {
@@ -510,8 +518,10 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      expect(result!.pairAddress).toBe('0xwithliq');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool.pairAddress).toBe('0xwithliq');
+      }
     });
 
     it('should return correct PoolInfo structure', () => {
@@ -530,12 +540,15 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).toEqual({
-        pairAddress: '0xpooladdr',
-        poolType: 'v2',
-        dexId: 'pancakeswap',
-        liquidity: 123456,
-      } satisfies PoolInfo);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.pool).toEqual({
+          pairAddress: '0xpooladdr',
+          poolType: 'v2',
+          dexId: 'pancakeswap',
+          liquidity: 123456,
+        } satisfies PoolInfo);
+      }
     });
 
     it('should prefer v2 when both v2 and v3 labels present', () => {
@@ -554,12 +567,14 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).not.toBeNull();
-      // Should pick v2 first (first valid label found)
-      expect(result!.poolType).toBe('v2');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Should pick v2 first (first valid label found)
+        expect(result.pool.poolType).toBe('v2');
+      }
     });
 
-    it('should return null when no BSC pools exist', () => {
+    it('should return no_valid_pools when no BSC pools exist', () => {
       const pairs: DexscreenerPair[] = [
         {
           chainId: 'ethereum',
@@ -575,10 +590,10 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ success: false, reason: 'no_valid_pools' });
     });
 
-    it('should return null when no valid v2/v3 pools exist', () => {
+    it('should return no_valid_pools when no valid v2/v3 pools exist', () => {
       const pairs: DexscreenerPair[] = [
         {
           chainId: 'bsc',
@@ -594,7 +609,185 @@ describe('dexscreener', () => {
 
       const result = selectBestPool(pairs);
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ success: false, reason: 'no_valid_pools' });
+    });
+
+    describe('minLiquidityUsd filter', () => {
+      it('should filter out pools below minimum liquidity threshold', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xlowliq',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 500 },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xlowliq',
+          },
+          {
+            chainId: 'bsc',
+            pairAddress: '0xhighliq',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 5000 },
+            dexId: 'biswap',
+            url: 'https://dexscreener.com/bsc/0xhighliq',
+          },
+        ];
+
+        const result = selectBestPool(pairs, 1000);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.pool.pairAddress).toBe('0xhighliq');
+        }
+      });
+
+      it('should return insufficient_liquidity when all pools below threshold', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xlowliq1',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 500 },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xlowliq1',
+          },
+          {
+            chainId: 'bsc',
+            pairAddress: '0xlowliq2',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v3'],
+            liquidity: { usd: 800 },
+            dexId: 'biswap',
+            url: 'https://dexscreener.com/bsc/0xlowliq2',
+          },
+        ];
+
+        const result = selectBestPool(pairs, 1000);
+
+        expect(result).toEqual({
+          success: false,
+          reason: 'insufficient_liquidity',
+          minLiquidityUsd: 1000,
+        });
+      });
+
+      it('should include pools exactly at the threshold', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xexact',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 1000 },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xexact',
+          },
+        ];
+
+        const result = selectBestPool(pairs, 1000);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.pool.pairAddress).toBe('0xexact');
+        }
+      });
+
+      it('should use default minLiquidity of 0 when not specified', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xzeroliq',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 0 },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xzeroliq',
+          },
+        ];
+
+        // No minLiquidity parameter passed
+        const result = selectBestPool(pairs);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.pool.pairAddress).toBe('0xzeroliq');
+        }
+      });
+
+      it('should treat missing liquidity.usd as 0 for threshold comparison', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xnoliq',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xnoliq',
+          },
+        ];
+
+        const result = selectBestPool(pairs, 1000);
+
+        expect(result).toEqual({
+          success: false,
+          reason: 'insufficient_liquidity',
+          minLiquidityUsd: 1000,
+        });
+      });
+
+      it('should return insufficient_liquidity with correct minLiquidity value', () => {
+        const pairs: DexscreenerPair[] = [
+          {
+            chainId: 'bsc',
+            pairAddress: '0xlowliq',
+            baseToken: { address: '0x1', name: 'Token', symbol: 'TKN' },
+            quoteToken: { address: '0x2', name: 'WBNB', symbol: 'WBNB' },
+            labels: ['v2'],
+            liquidity: { usd: 100 },
+            dexId: 'pancakeswap',
+            url: 'https://dexscreener.com/bsc/0xlowliq',
+          },
+        ];
+
+        const result = selectBestPool(pairs, 5000);
+
+        expect(result.success).toBe(false);
+        if (!result.success && result.reason === 'insufficient_liquidity') {
+          expect(result.minLiquidityUsd).toBe(5000);
+        }
+      });
+    });
+  });
+
+  describe('InsufficientLiquidityError', () => {
+    it('should have correct name property', () => {
+      const error = new InsufficientLiquidityError(1000);
+      expect(error.name).toBe('InsufficientLiquidityError');
+    });
+
+    it('should store minLiquidityUsd', () => {
+      const error = new InsufficientLiquidityError(5000);
+      expect(error.minLiquidityUsd).toBe(5000);
+    });
+
+    it('should format message with comma-separated minimum', () => {
+      const error = new InsufficientLiquidityError(1000);
+      expect(error.message).toBe('No pools with sufficient liquidity (minimum $1,000)');
+    });
+
+    it('should format large numbers correctly', () => {
+      const error = new InsufficientLiquidityError(1000000);
+      expect(error.message).toBe('No pools with sufficient liquidity (minimum $1,000,000)');
     });
   });
 });

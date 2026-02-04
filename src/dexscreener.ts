@@ -28,6 +28,16 @@ export class DexscreenerApiError extends Error {
 }
 
 /**
+ * Custom error class for insufficient liquidity
+ */
+export class InsufficientLiquidityError extends Error {
+  constructor(public readonly minLiquidityUsd: number) {
+    super(`No pools with sufficient liquidity (minimum $${minLiquidityUsd.toLocaleString('en-US')})`);
+    this.name = 'InsufficientLiquidityError';
+  }
+}
+
+/**
  * Sleep utility for delays between retries
  */
 function sleep(ms: number): Promise<void> {
@@ -117,13 +127,22 @@ export async function fetchPools(tokenAddress: string): Promise<DexscreenerPair[
 }
 
 /**
+ * Result of selectBestPool - either a pool or a specific error condition
+ */
+export type SelectBestPoolResult =
+  | { success: true; pool: PoolInfo }
+  | { success: false; reason: 'no_valid_pools' }
+  | { success: false; reason: 'insufficient_liquidity'; minLiquidityUsd: number };
+
+/**
  * Selects the best pool from a list of Dexscreener pairs
- * Filters by: chainId === 'bsc' AND labels containing 'v2' or 'v3'
+ * Filters by: chainId === 'bsc' AND labels containing 'v2' or 'v3' AND liquidity >= minLiquidityUsd
  * Sorts by: liquidity.usd descending
  * @param pairs - Array of DexscreenerPair objects to filter and sort
- * @returns PoolInfo for the best pool, or null if no valid pools found
+ * @param minLiquidityUsd - Minimum liquidity threshold in USD (default: 0)
+ * @returns SelectBestPoolResult indicating success with pool or failure reason
  */
-export function selectBestPool(pairs: DexscreenerPair[]): PoolInfo | null {
+export function selectBestPool(pairs: DexscreenerPair[], minLiquidityUsd: number = 0): SelectBestPoolResult {
   // Filter by BSC chain
   const bscPairs = pairs.filter((p) => p.chainId === 'bsc');
 
@@ -136,20 +155,32 @@ export function selectBestPool(pairs: DexscreenerPair[]): PoolInfo | null {
     .filter((item): item is { pair: DexscreenerPair; poolType: PoolLabel } => item !== null);
 
   if (validPairs.length === 0) {
-    return null;
+    return { success: false, reason: 'no_valid_pools' };
+  }
+
+  // Filter by minimum liquidity
+  const liquidPairs = validPairs.filter(
+    (item) => (item.pair.liquidity?.usd ?? 0) >= minLiquidityUsd
+  );
+
+  if (liquidPairs.length === 0) {
+    return { success: false, reason: 'insufficient_liquidity', minLiquidityUsd };
   }
 
   // Sort by liquidity.usd descending
-  validPairs.sort(
+  liquidPairs.sort(
     (a, b) => (b.pair.liquidity?.usd ?? 0) - (a.pair.liquidity?.usd ?? 0)
   );
 
   // Return the best pool as PoolInfo
-  const best = validPairs[0];
+  const best = liquidPairs[0];
   return {
-    pairAddress: best.pair.pairAddress,
-    poolType: best.poolType,
-    dexId: best.pair.dexId,
-    liquidity: best.pair.liquidity?.usd ?? 0,
+    success: true,
+    pool: {
+      pairAddress: best.pair.pairAddress,
+      poolType: best.poolType,
+      dexId: best.pair.dexId,
+      liquidity: best.pair.liquidity?.usd ?? 0,
+    },
   };
 }
