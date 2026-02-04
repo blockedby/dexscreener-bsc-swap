@@ -61,6 +61,7 @@ export interface SwapParams {
   tokenIn: string;          // Token being swapped in (WBNB address for buy)
   amountIn: bigint;         // Amount in wei
   amountOutMin: bigint;     // Calculated from slippage, for contract
+  slippageBps: number;      // Slippage in basis points (100 = 1%) for V3 price limit
   recipient: string;        // Address to receive tokens
   poolType: PoolLabel;      // v2 or v3 - determines which contract function
 }

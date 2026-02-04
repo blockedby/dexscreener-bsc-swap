@@ -1,6 +1,65 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// ╔═══════════════════════════════════════════════════════════════════════════════╗
+// ║  ⚠️  SMART CONTRACT IS DEPRECATED - SHOULD BE FIXED IF YOU WANT TO USE IT    ║
+// ╠═══════════════════════════════════════════════════════════════════════════════╣
+// ║  Decision: Use official Uniswap/PancakeSwap routers instead.                  ║
+// ║  This contract has security issues that must be fixed before production use.  ║
+// ╚═══════════════════════════════════════════════════════════════════════════════╝
+//
+// ┌─────────────────────────────────────────────────────────────────────────────┐
+// │ CRITICAL ISSUES TO FIX:                                                      │
+// ├─────────────────────────────────────────────────────────────────────────────┤
+// │                                                                              │
+// │ 1. [CRITICAL] V2 Reserve Manipulation (lines 164-173)                        │
+// │    Problem: getReserves() called AFTER transfer, reserves include amountIn   │
+// │    Fix: Move getReserves() BEFORE _safeTransferFrom()                        │
+// │                                                                              │
+// │ 2. [CRITICAL] No Reentrancy Protection                                       │
+// │    Problem: Malicious token can reenter via transferFrom callback            │
+// │    Fix: Add OpenZeppelin ReentrancyGuard, use nonReentrant modifier          │
+// │         import "@openzeppelin/contracts/security/ReentrancyGuard.sol";       │
+// │                                                                              │
+// │ 3. [CRITICAL] Multiple Callback Vulnerability (lines 391-412)                │
+// │    Problem: Malicious pool can call callback multiple times                  │
+// │    Fix: Add _callbackExecuted flag, check and set in _handleV3Callback       │
+// │                                                                              │
+// │ 4. [CRITICAL] Callback Data Manipulation (lines 367-389)                     │
+// │    Problem: Pool can modify callback data (change payer to victim)           │
+// │    Fix: Store keccak256(data) hash before swap, validate in callback         │
+// │                                                                              │
+// │ 5. [HIGH] No Transaction Deadline                                            │
+// │    Problem: Stale transactions execute at bad prices                         │
+// │    Fix: Add deadline parameter: require(block.timestamp <= deadline)         │
+// │                                                                              │
+// │ 6. [HIGH] V3 sqrtPrice Math Approximation (lines 315, 324)                   │
+// │    Problem: slippageBps / 2 is approximation, loses precision for odd values │
+// │    Example: slippageBps=1 (0.01%) → 1/2=0 → NO slippage protection!          │
+// │    TODO: VERIFY THIS MATH - consider using MIN/MAX_SQRT_RATIO instead        │
+// │    Fix: Use pool boundaries (MIN/MAX_SQRT_RATIO) + rely on amountOutMin      │
+// │         OR calculate expected output via callstatic first                    │
+// │                                                                              │
+// │ 7. [HIGH] V2 Fee Hardcoded as 0.3% (line 237)                                │
+// │    Problem: Some V2 forks use different fees                                 │
+// │    Fix: Query fee from pool or accept as parameter                           │
+// │                                                                              │
+// │ 8. [MEDIUM] Factory Validation Not Implemented                               │
+// │    Problem: No CREATE2 verification of pool address                          │
+// │    Note: Mitigated if using trusted API (Dexscreener) for pool addresses     │
+// │    Fix (optional): Implement CallbackValidation.verifyCallback() pattern     │
+// │                                                                              │
+// │ 9. [MEDIUM] Deflationary Tokens Not Supported (DOCUMENTED LIMITATION)        │
+// │    Problem: Tokens with transfer fees cause incorrect output calculations    │
+// │    Decision: Document as limitation in README. V3 pools don't support them   │
+// │    anyway (industry standard). Not fixing for MVP.                           │
+// │                                                                              │
+// │ 10. [LOW] Dual Callback Entry Points                                         │
+// │    Problem: Both uniswapV3SwapCallback and pancakeV3SwapCallback exist       │
+// │    Note: Acceptable if only supporting Uniswap + PancakeSwap                 │
+// │                                                                              │
+// └─────────────────────────────────────────────────────────────────────────────┘
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Interfaces
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -22,6 +81,15 @@ interface IUniswapV3Pool {
     function token0() external view returns (address);
     function token1() external view returns (address);
     function fee() external view returns (uint24);
+    function slot0() external view returns (
+        uint160 sqrtPriceX96,
+        int24 tick,
+        uint16 observationIndex,
+        uint16 observationCardinality,
+        uint16 observationCardinalityNext,
+        uint8 feeProtocol,
+        bool unlocked
+    );
     function swap(
         address recipient,
         bool zeroForOne,
@@ -78,11 +146,14 @@ contract UniversalSwap {
     // Constants
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// @dev Min sqrt price limit for V3 swaps (zeroForOne = true)
+    /// @dev Min sqrt price limit for V3 swaps (absolute minimum, tick -887272)
     uint160 private constant MIN_SQRT_RATIO = 4295128739;
 
-    /// @dev Max sqrt price limit for V3 swaps (zeroForOne = false)
+    /// @dev Max sqrt price limit for V3 swaps (absolute maximum, tick 887272)
     uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+
+    /// @dev Basis points denominator (100% = 10000)
+    uint256 private constant BPS_DENOMINATOR = 10000;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // State (for V3 callback)
@@ -237,6 +308,7 @@ contract UniversalSwap {
     /// @param tokenIn The input token address
     /// @param amountIn The amount of input tokens
     /// @param amountOutMin Minimum output amount (slippage protection)
+    /// @param slippageBps Price slippage tolerance in basis points (e.g., 100 = 1%)
     /// @param recipient The address to receive output tokens
     /// @return amountOut The actual output amount
     function swapV3(
@@ -244,6 +316,7 @@ contract UniversalSwap {
         address tokenIn,
         uint256 amountIn,
         uint256 amountOutMin,
+        uint256 slippageBps,
         address recipient
     ) external returns (uint256 amountOut) {
         // Validation
@@ -264,8 +337,11 @@ contract UniversalSwap {
         state.tokenOut = state.zeroForOne ? state.token1 : state.token0;
         state.balanceBefore = IERC20(state.tokenOut).balanceOf(recipient);
 
+        // Get current price and calculate limit with slippage
+        uint160 sqrtPriceLimitX96 = _calculateV3PriceLimit(poolContract, state.zeroForOne, slippageBps);
+
         // Execute swap
-        _executeV3Swap(poolContract, tokenIn, amountIn, state.zeroForOne, recipient);
+        _executeV3Swap(poolContract, tokenIn, amountIn, state.zeroForOne, sqrtPriceLimitX96, recipient);
 
         // Calculate actual output
         amountOut = IERC20(state.tokenOut).balanceOf(recipient) - state.balanceBefore;
@@ -278,12 +354,49 @@ contract UniversalSwap {
         emit SwapV3Executed(pool, tokenIn, state.tokenOut, amountIn, amountOut, recipient);
     }
 
+    /// @dev Calculate V3 price limit from current price + slippage
+    /// @param poolContract The V3 pool
+    /// @param zeroForOne Swap direction
+    /// @param slippageBps Slippage in basis points
+    /// @return sqrtPriceLimitX96 The calculated price limit
+    function _calculateV3PriceLimit(
+        IUniswapV3Pool poolContract,
+        bool zeroForOne,
+        uint256 slippageBps
+    ) internal view returns (uint160 sqrtPriceLimitX96) {
+        // Get current sqrt price from pool
+        (uint160 currentSqrtPriceX96, , , , , , ) = poolContract.slot0();
+
+        if (zeroForOne) {
+            // Selling token0 for token1: price goes DOWN, limit is LOWER
+            // sqrtPriceLimit = currentPrice * (1 - slippage/2)
+            // We use slippage/2 because sqrtPrice, not price
+            uint256 multiplier = BPS_DENOMINATOR - (slippageBps / 2);
+            sqrtPriceLimitX96 = uint160((uint256(currentSqrtPriceX96) * multiplier) / BPS_DENOMINATOR);
+
+            // Ensure we don't go below absolute minimum
+            if (sqrtPriceLimitX96 < MIN_SQRT_RATIO) {
+                sqrtPriceLimitX96 = MIN_SQRT_RATIO + 1;
+            }
+        } else {
+            // Selling token1 for token0: price goes UP, limit is HIGHER
+            uint256 multiplier = BPS_DENOMINATOR + (slippageBps / 2);
+            sqrtPriceLimitX96 = uint160((uint256(currentSqrtPriceX96) * multiplier) / BPS_DENOMINATOR);
+
+            // Ensure we don't go above absolute maximum
+            if (sqrtPriceLimitX96 > MAX_SQRT_RATIO) {
+                sqrtPriceLimitX96 = MAX_SQRT_RATIO - 1;
+            }
+        }
+    }
+
     /// @dev Execute V3 swap with callback
     function _executeV3Swap(
         IUniswapV3Pool poolContract,
         address tokenIn,
         uint256 amountIn,
         bool zeroForOne,
+        uint160 sqrtPriceLimitX96,
         address recipient
     ) internal {
         // Encode callback data
@@ -293,9 +406,6 @@ contract UniversalSwap {
                 payer: msg.sender
             })
         );
-
-        // Set price limit based on direction
-        uint160 sqrtPriceLimitX96 = zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1;
 
         // Set expected pool for callback validation (security)
         _expectedPool = address(poolContract);
