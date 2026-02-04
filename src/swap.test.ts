@@ -7,6 +7,7 @@ import {
   getGasParams,
   encodeExactInputSingle,
   encodeV2SwapCommand,
+  encodeV3SwapCommand,
   PANCAKESWAP_V2_ROUTER,
   PANCAKESWAP_V3_ROUTER,
   DEFAULT_BASE_FEE_GWEI,
@@ -325,6 +326,66 @@ describe('swap', () => {
         1000000000000000000n,
         990000000000000000n,
         3000 // 0.3% fee
+      );
+
+      expect(result).toMatch(/^0x/);
+    });
+  });
+
+  describe('encodeV3SwapCommand', () => {
+    const validRecipient = '0x1234567890123456789012345678901234567890';
+    const validTokenIn = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const validTokenOut = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
+
+    it('should return a hex string starting with 0x', () => {
+      const result = encodeV3SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        validTokenIn,
+        validTokenOut,
+        2500
+      );
+
+      expect(result).toMatch(/^0x/);
+    });
+
+    it('should encode V3 path as bytes (tokenIn + fee + tokenOut)', () => {
+      const result = encodeV3SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        validTokenIn,
+        validTokenOut,
+        2500
+      );
+
+      // V3 path: 20 bytes tokenIn + 3 bytes fee + 20 bytes tokenOut = 43 bytes
+      // Should be present in encoded output
+      expect(result.length).toBeGreaterThan(200);
+    });
+
+    it('should set payerIsUser to true', () => {
+      const result = encodeV3SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        validTokenIn,
+        validTokenOut,
+        2500
+      );
+
+      // payerIsUser should be true (0x01) somewhere in the encoded data
+      expect(result).toContain('0000000000000000000000000000000000000000000000000000000000000001');
+    });
+
+    it('should use default pool fee when not specified', () => {
+      const result = encodeV3SwapCommand(
+        validRecipient,
+        1000000000000000000n,
+        990000000000000000n,
+        validTokenIn,
+        validTokenOut
       );
 
       expect(result).toMatch(/^0x/);

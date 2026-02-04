@@ -240,6 +240,47 @@ export function encodeExactInputSingle(
 }
 
 /**
+ * Encode V3 path as bytes: tokenIn (20 bytes) + fee (3 bytes) + tokenOut (20 bytes)
+ */
+function encodeV3Path(tokenIn: string, tokenOut: string, fee: number): string {
+  // Remove 0x prefix and pad addresses to 20 bytes (40 hex chars)
+  const tokenInHex = tokenIn.slice(2).toLowerCase().padStart(40, '0');
+  const tokenOutHex = tokenOut.slice(2).toLowerCase().padStart(40, '0');
+  // Fee is 3 bytes (6 hex chars)
+  const feeHex = fee.toString(16).padStart(6, '0');
+  return '0x' + tokenInHex + feeHex + tokenOutHex;
+}
+
+/**
+ * Encode V3 swap command input for Universal Router.
+ * Format: ABI-encoded (recipient, amountIn, amountOutMin, path, payerIsUser)
+ * Path is encoded as bytes: tokenIn (20) + fee (3) + tokenOut (20)
+ *
+ * @param recipient - Address to receive output tokens
+ * @param amountIn - Input amount in wei
+ * @param amountOutMin - Minimum output amount
+ * @param tokenIn - Input token address
+ * @param tokenOut - Output token address
+ * @param fee - Pool fee tier (default: 2500 = 0.25%)
+ * @returns ABI-encoded input bytes
+ */
+export function encodeV3SwapCommand(
+  recipient: string,
+  amountIn: bigint,
+  amountOutMin: bigint,
+  tokenIn: string,
+  tokenOut: string,
+  fee: number = DEFAULT_V3_POOL_FEE
+): string {
+  const abiCoder = AbiCoder.defaultAbiCoder();
+  const path = encodeV3Path(tokenIn, tokenOut, fee);
+  return abiCoder.encode(
+    ['address', 'uint256', 'uint256', 'bytes', 'bool'],
+    [recipient, amountIn, amountOutMin, path, true]
+  );
+}
+
+/**
  * Encode V2 swap command input for Universal Router.
  * Format: ABI-encoded (recipient, amountIn, amountOutMin, path, payerIsUser)
  *
