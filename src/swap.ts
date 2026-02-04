@@ -1,5 +1,20 @@
-import { JsonRpcProvider, Wallet, Contract } from 'ethers';
+import { JsonRpcProvider, Wallet, Contract, parseUnits, Interface } from 'ethers';
 import type { SwapParams, Config } from './types';
+
+/**
+ * Default base fee in gwei if provider doesn't return fee data
+ */
+export const DEFAULT_BASE_FEE_GWEI = '5';
+
+/**
+ * Priority fee for BSC transactions (3 gwei is standard)
+ */
+export const BSC_PRIORITY_FEE_GWEI = '3';
+
+/**
+ * Buffer percentage to add to base fee (20%)
+ */
+export const GAS_FEE_BUFFER_PERCENT = 20n;
 
 /**
  * PancakeSwap V2 Router address on BSC mainnet
@@ -7,7 +22,22 @@ import type { SwapParams, Config } from './types';
 export const PANCAKESWAP_V2_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
 /**
- * ABI for PancakeSwap V2 Router - only getAmountsOut function
+ * PancakeSwap V3 SwapRouter address on BSC mainnet
+ */
+export const PANCAKESWAP_V3_ROUTER = '0x1b81D678ffb9C0263b24A97847620C99d213eB14';
+
+/**
+ * WBNB address on BSC mainnet
+ */
+const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+
+/**
+ * Default V3 pool fee (0.25% = 2500 bps, common on PancakeSwap V3)
+ */
+export const DEFAULT_V3_POOL_FEE = 2500;
+
+/**
+ * ABI for PancakeSwap V2 Router - getAmountsOut and swapExactETHForTokens
  */
 const PANCAKESWAP_V2_ROUTER_ABI = [
   {
@@ -20,38 +50,54 @@ const PANCAKESWAP_V2_ROUTER_ABI = [
     outputs: [{ name: 'amounts', type: 'uint256[]' }],
     stateMutability: 'view',
   },
+  {
+    name: 'swapExactETHForTokens',
+    type: 'function',
+    inputs: [
+      { name: 'amountOutMin', type: 'uint256' },
+      { name: 'path', type: 'address[]' },
+      { name: 'to', type: 'address' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    outputs: [{ name: 'amounts', type: 'uint256[]' }],
+    stateMutability: 'payable',
+  },
 ];
 
 /**
- * ABI for the UniversalSwap contract - only the functions we need
+ * ABI for PancakeSwap V3 SwapRouter - multicall and exactInputSingle
  */
-const UNIVERSAL_SWAP_ABI = [
+const PANCAKESWAP_V3_ROUTER_ABI = [
   {
-    name: 'swapV2',
+    name: 'multicall',
     type: 'function',
     inputs: [
-      { name: 'pair', type: 'address' },
-      { name: 'tokenIn', type: 'address' },
-      { name: 'amountIn', type: 'uint256' },
-      { name: 'amountOutMin', type: 'uint256' },
-      { name: 'recipient', type: 'address' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'data', type: 'bytes[]' },
     ],
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'nonpayable',
+    outputs: [{ name: 'results', type: 'bytes[]' }],
+    stateMutability: 'payable',
   },
   {
-    name: 'swapV3',
+    name: 'exactInputSingle',
     type: 'function',
     inputs: [
-      { name: 'pool', type: 'address' },
-      { name: 'tokenIn', type: 'address' },
-      { name: 'amountIn', type: 'uint256' },
-      { name: 'amountOutMin', type: 'uint256' },
-      { name: 'slippageBps', type: 'uint256' },
-      { name: 'recipient', type: 'address' },
+      {
+        name: 'params',
+        type: 'tuple',
+        components: [
+          { name: 'tokenIn', type: 'address' },
+          { name: 'tokenOut', type: 'address' },
+          { name: 'fee', type: 'uint24' },
+          { name: 'recipient', type: 'address' },
+          { name: 'amountIn', type: 'uint256' },
+          { name: 'amountOutMinimum', type: 'uint256' },
+          { name: 'sqrtPriceLimitX96', type: 'uint160' },
+        ],
+      },
     ],
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'nonpayable',
+    outputs: [{ name: 'amountOut', type: 'uint256' }],
+    stateMutability: 'payable',
   },
 ];
 
@@ -79,6 +125,38 @@ export async function getExpectedOutput(
 }
 
 /**
+ * EIP-1559 gas parameters for transaction
+ */
+export interface GasParams {
+  maxFeePerGas: bigint;
+  maxPriorityFeePerGas: bigint;
+}
+
+/**
+ * Get EIP-1559 gas parameters with buffer for BSC transactions.
+ * Fetches current fee data from provider, adds 20% buffer to maxFeePerGas,
+ * and sets maxPriorityFeePerGas to 3 gwei (BSC standard).
+ *
+ * @param provider - JSON RPC provider for BSC
+ * @returns Gas parameters with maxFeePerGas and maxPriorityFeePerGas
+ */
+export async function getGasParams(provider: JsonRpcProvider): Promise<GasParams> {
+  const feeData = await provider.getFeeData();
+  const baseFee = feeData.maxFeePerGas ?? parseUnits(DEFAULT_BASE_FEE_GWEI, 'gwei');
+
+  // Add 20% buffer to base fee
+  const maxFeePerGas = baseFee * (100n + GAS_FEE_BUFFER_PERCENT) / 100n;
+
+  // BSC standard priority fee is 3 gwei
+  const maxPriorityFeePerGas = parseUnits(BSC_PRIORITY_FEE_GWEI, 'gwei');
+
+  return {
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+  };
+}
+
+/**
  * Calculate minimum output amount with slippage protection.
  * Formula: expectedOutput * (10000 - slippageBps) / 10000
  *
@@ -97,12 +175,42 @@ export function calculateAmountOutMin(expectedOutput: bigint, slippageBps: numbe
 }
 
 /**
- * Execute a swap on the UniversalSwap contract.
- * Creates a wallet from the config, connects to the contract,
- * and calls either swapV2() or swapV3() based on the pool type.
+ * Encode exactInputSingle call data for V3 multicall.
  *
- * @param params - Swap parameters including pair address, tokens, amounts
- * @param config - Configuration with private key and contract address
+ * @param tokenOut - Address of output token
+ * @param recipient - Address to receive tokens
+ * @param amountIn - Input amount in wei
+ * @param amountOutMin - Minimum output amount
+ * @param fee - Pool fee tier (default: 2500 = 0.25%)
+ * @returns Encoded call data as hex string
+ */
+export function encodeExactInputSingle(
+  tokenOut: string,
+  recipient: string,
+  amountIn: bigint,
+  amountOutMin: bigint,
+  fee: number = DEFAULT_V3_POOL_FEE
+): string {
+  const iface = new Interface(PANCAKESWAP_V3_ROUTER_ABI);
+  return iface.encodeFunctionData('exactInputSingle', [{
+    tokenIn: WBNB_ADDRESS,
+    tokenOut,
+    fee,
+    recipient,
+    amountIn,
+    amountOutMinimum: amountOutMin,
+    sqrtPriceLimitX96: 0n, // No price limit
+  }]);
+}
+
+/**
+ * Execute a swap using PancakeSwap routers.
+ * For V2: Uses swapExactETHForTokens which accepts native BNB and wraps internally.
+ * For V3: Uses multicall with exactInputSingle, sending native BNB which the router wraps.
+ * Both methods handle BNB wrapping automatically in one transaction.
+ *
+ * @param params - Swap parameters including token addresses, amounts, deadline
+ * @param config - Configuration with private key (universalSwapAddress not needed for router swaps)
  * @param provider - JSON RPC provider for BSC
  * @returns Transaction hash of the swap transaction
  */
@@ -114,27 +222,48 @@ export async function executeSwap(
   // Create wallet from private key
   const wallet = new Wallet(config.privateKey, provider);
 
-  // Create contract instance
-  const contract = new Contract(config.universalSwapAddress, UNIVERSAL_SWAP_ABI, wallet);
+  // Get EIP-1559 gas parameters with buffer
+  const gasParams = await getGasParams(provider);
 
-  // Execute appropriate swap based on pool type
   let tx;
   if (params.poolType === 'v2') {
-    tx = await contract.swapV2(
-      params.pairAddress,
-      params.tokenIn,
-      params.amountIn,
+    // V2: Use PancakeSwap V2 Router with swapExactETHForTokens
+    // This function accepts native BNB and wraps it internally
+    const v2Router = new Contract(PANCAKESWAP_V2_ROUTER, PANCAKESWAP_V2_ROUTER_ABI, wallet);
+
+    // Path: WBNB -> tokenOut (router expects WBNB in path but accepts native BNB)
+    tx = await v2Router.swapExactETHForTokens(
       params.amountOutMin,
-      params.recipient
+      [WBNB_ADDRESS, params.tokenOut],
+      params.recipient,
+      params.deadline,
+      {
+        value: params.amountIn,
+        ...gasParams,
+      }
     );
   } else {
-    tx = await contract.swapV3(
-      params.pairAddress,
-      params.tokenIn,
+    // V3: Use PancakeSwap V3 SwapRouter with multicall
+    // This allows wrapping BNB and swapping in one transaction
+    const v3Router = new Contract(PANCAKESWAP_V3_ROUTER, PANCAKESWAP_V3_ROUTER_ABI, wallet);
+
+    // Encode the exactInputSingle call
+    const swapCallData = encodeExactInputSingle(
+      params.tokenOut,
+      params.recipient,
       params.amountIn,
       params.amountOutMin,
-      params.slippageBps,
-      params.recipient
+      DEFAULT_V3_POOL_FEE
+    );
+
+    // Use multicall with deadline
+    tx = await v3Router.multicall(
+      params.deadline,
+      [swapCallData],
+      {
+        value: params.amountIn,
+        ...gasParams,
+      }
     );
   }
 
