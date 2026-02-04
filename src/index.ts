@@ -1,9 +1,9 @@
 import { Command } from 'commander';
-import { parseEther, JsonRpcProvider, Wallet } from 'ethers';
+import { parseEther, formatEther, formatUnits, JsonRpcProvider, Wallet } from 'ethers';
 import { loadConfig, WBNB_ADDRESS, validateSlippage } from './config';
 import { fetchPools, selectBestPool } from './dexscreener';
 import { executeSwap, calculateAmountOutMin, getExpectedOutput } from './swap';
-import { info, error } from './logger';
+import { info, error, warn } from './logger';
 import type { SwapParams, DexscreenerPair } from './types';
 
 /**
@@ -43,34 +43,57 @@ export async function runSwap(
     : config.slippage;
   const slippage = validateSlippage(rawSlippage);
 
+  // Log configuration
+  info('=== BSC Swap Bot ===');
+  info(`Token: ${tokenAddress}`);
+  info(`Amount: ${amount} BNB`);
+  info(`Slippage: ${slippage}%${slippageOverride ? ' (CLI override)' : ''}`);
+  info(`Deadline: ${config.deadlineSeconds}s`);
+  info(`Min liquidity: ${formatLiquidity(config.minLiquidityUsd)}`);
+  info('');
+
   // Fetch pools from Dexscreener
-  info(`Fetching pools for ${tokenAddress}...`);
+  info(`Fetching pools from Dexscreener...`);
   const pairs = await fetchPools(tokenAddress);
 
-  info(`Found ${pairs.length} pools on Dexscreener`);
+  // Filter and count BSC pools
+  const bscPairs = pairs.filter(p => p.chainId === 'bsc');
+  const v2v3Pairs = bscPairs.filter(p => p.labels?.some(l => l === 'v2' || l === 'v3'));
 
-  // Log each pool's info
-  pairs.forEach((pair, index) => logPoolInfo(pair, index));
+  info(`Found: ${pairs.length} total, ${bscPairs.length} BSC, ${v2v3Pairs.length} V2/V3`);
+  info('');
+
+  // Log BSC V2/V3 pools sorted by liquidity
+  if (v2v3Pairs.length > 0) {
+    info('Available pools (sorted by liquidity):');
+    const sortedPairs = [...v2v3Pairs].sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0));
+    sortedPairs.forEach((pair, index) => logPoolInfo(pair, index));
+    info('');
+  }
 
   // Select the best pool with minimum liquidity filter
   const result = selectBestPool(pairs, config.minLiquidityUsd);
 
   if (!result.success) {
     if (result.reason === 'insufficient_liquidity') {
-      const message = `No pools with sufficient liquidity (minimum $${result.minLiquidityUsd.toLocaleString('en-US')})`;
+      const message = `No pools with sufficient liquidity (minimum ${formatLiquidity(result.minLiquidityUsd)})`;
       error(message);
       throw new Error(message);
     }
-    error('No suitable pools found for this token');
+    error('No suitable V2/V3 pools found on BSC');
     throw new Error('No suitable pools found');
   }
 
   const pool = result.pool;
-  info(`Selected: ${pool.dexId} ${pool.poolType} (${pool.pairAddress}) — highest liquidity`);
+  info(`Selected pool: ${pool.dexId.toUpperCase()} ${pool.poolType.toUpperCase()}`);
+  info(`  Address: ${pool.pairAddress}`);
+  info(`  Liquidity: ${formatLiquidity(pool.liquidity)}`);
+  info('');
 
   // Create provider and wallet
   const provider = new JsonRpcProvider(config.rpcUrl);
   const wallet = new Wallet(config.privateKey, provider);
+  info(`Wallet: ${wallet.address}`);
 
   // Parse amount to wei
   let amountIn: bigint;
@@ -89,11 +112,16 @@ export async function runSwap(
   const slippageBps = Math.floor(slippage * 100);
 
   // Get expected output from router
-  info(`Getting expected output from PancakeSwap router...`);
+  info('');
+  info('Querying PancakeSwap router for expected output...');
   const expectedOutput = await getExpectedOutput(provider, amountIn, WBNB_ADDRESS, tokenAddress);
 
   // Calculate minimum output with slippage applied to expected output
   const amountOutMin = calculateAmountOutMin(expectedOutput, slippageBps);
+
+  // Log swap details
+  info(`Expected output: ${formatUnits(expectedOutput, 18)} tokens`);
+  info(`Min output (${slippage}% slippage): ${formatUnits(amountOutMin, 18)} tokens`);
 
   // Calculate deadline as current timestamp + deadlineSeconds
   const deadline = BigInt(Math.floor(Date.now() / 1000) + config.deadlineSeconds);
@@ -102,7 +130,7 @@ export async function runSwap(
   const swapParams: SwapParams = {
     pairAddress: pool.pairAddress,
     tokenIn: WBNB_ADDRESS,
-    tokenOut: tokenAddress,  // The token user wants to buy
+    tokenOut: tokenAddress,
     amountIn,
     amountOutMin,
     slippageBps,
@@ -112,12 +140,18 @@ export async function runSwap(
   };
 
   // Log swap execution
-  info(`Executing V${pool.poolType === 'v2' ? '2' : '3'} swap: ${amount} BNB → TOKEN`);
+  info('');
+  info(`Executing swap via PancakeSwap ${pool.poolType.toUpperCase()} Router...`);
+  info(`  ${amount} BNB → TOKEN`);
+  info(`  Deadline: ${new Date(Number(deadline) * 1000).toLocaleTimeString()}`);
 
   try {
     // Execute the swap
     const txHash = await executeSwap(swapParams, config, provider);
+    info('');
+    info('=== Swap Submitted ===');
     info(`TX Hash: ${txHash}`);
+    info(`BSCScan: https://bscscan.com/tx/${txHash}`);
     return txHash;
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);

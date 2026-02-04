@@ -22,10 +22,13 @@ vi.mock('./swap', () => ({
 vi.mock('./logger', () => ({
   info: vi.fn(),
   error: vi.fn(),
+  warn: vi.fn(),
 }));
 
 vi.mock('ethers', () => ({
   parseEther: vi.fn((value: string) => BigInt(Math.floor(parseFloat(value) * 1e18))),
+  formatEther: vi.fn((value: bigint) => (Number(value) / 1e18).toString()),
+  formatUnits: vi.fn((value: bigint, decimals: number) => (Number(value) / Math.pow(10, decimals)).toString()),
   JsonRpcProvider: vi.fn().mockImplementation(() => ({})),
   Wallet: vi.fn().mockImplementation(() => ({
     address: '0xWalletAddress',
@@ -258,7 +261,10 @@ describe('CLI index.ts', () => {
       await runSwap('0xTokenAddress', '0.01');
 
       expect(info).toHaveBeenCalledWith(
-        expect.stringMatching(/Selected:.*biswap.*v2.*0xPairAddress1/)
+        expect.stringMatching(/Selected pool:.*BISWAP.*V2/i)
+      );
+      expect(info).toHaveBeenCalledWith(
+        expect.stringMatching(/Address:.*0xPairAddress1/)
       );
     });
 
@@ -266,7 +272,10 @@ describe('CLI index.ts', () => {
       await runSwap('0xTokenAddress', '0.01');
 
       expect(info).toHaveBeenCalledWith(
-        expect.stringMatching(/Executing V2 swap:.*0\.01 BNB/)
+        expect.stringMatching(/Executing swap via PancakeSwap V2 Router/)
+      );
+      expect(info).toHaveBeenCalledWith(
+        expect.stringMatching(/0\.01 BNB.*TOKEN/)
       );
     });
   });
