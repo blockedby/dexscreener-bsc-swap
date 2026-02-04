@@ -77,6 +77,7 @@ export async function runSwap(
     tokenIn: WBNB_ADDRESS,
     amountIn,
     amountOutMin,
+    slippageBps: Math.floor(slippage * 100), // 1% -> 100 bps
     recipient: wallet.address,
     poolType: pool.poolType,
   };
