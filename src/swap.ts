@@ -37,6 +37,25 @@ const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
 export const DEFAULT_V3_POOL_FEE = 2500;
 
 /**
+ * PancakeSwap Infinity Universal Router address on BSC mainnet
+ * Supports both V2 and V3 swaps via execute() function
+ */
+export const PANCAKESWAP_UNIVERSAL_ROUTER = '0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB';
+
+/**
+ * Uniswap Universal Router address on BSC mainnet
+ */
+export const UNISWAP_UNIVERSAL_ROUTER = '0x5dc88340e1c5c6366864ee415d6034cadd1a9897';
+
+/**
+ * Universal Router command codes
+ */
+export const UNIVERSAL_ROUTER_COMMANDS = {
+  V3_SWAP_EXACT_IN: 0x00,
+  V2_SWAP_EXACT_IN: 0x08,
+} as const;
+
+/**
  * ABI for PancakeSwap V2 Router - getAmountsOut and swapExactETHForTokens
  */
 const PANCAKESWAP_V2_ROUTER_ABI = [
