@@ -212,6 +212,7 @@ export function calculateAmountOutMin(expectedOutput: bigint, slippageBps: numbe
 
 /**
  * Encode exactInputSingle call data for V3 multicall.
+ * @deprecated Use encodeV3SwapCommand with Universal Router instead.
  *
  * @param tokenOut - Address of output token
  * @param recipient - Address to receive tokens
