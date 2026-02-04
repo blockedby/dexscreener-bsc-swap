@@ -183,6 +183,37 @@ describe('swap', () => {
       expect(result).toBe('0xTransactionHashV3');
     });
 
+    it('should pass slippageBps to V3 contract as 5th argument', async () => {
+      const v3Params: SwapParams = { ...mockSwapParams, poolType: 'v3', slippageBps: 250 }; // 2.5%
+
+      await executeSwap(v3Params, mockConfig, mockProvider);
+
+      // Verify slippageBps is passed as the 5th argument (index 4)
+      const callArgs = mockSwapV3.mock.calls[0];
+      expect(callArgs).toHaveLength(6); // V3 has 6 arguments
+      expect(callArgs[4]).toBe(250); // slippageBps is the 5th argument
+    });
+
+    it('should NOT pass slippageBps to V2 contract (different signature)', async () => {
+      const v2Params: SwapParams = { ...mockSwapParams, poolType: 'v2', slippageBps: 100 };
+
+      await executeSwap(v2Params, mockConfig, mockProvider);
+
+      // Verify V2 is called with only 5 arguments (no slippageBps)
+      const callArgs = mockSwapV2.mock.calls[0];
+      expect(callArgs).toHaveLength(5); // V2 has only 5 arguments
+      // Verify none of the arguments is slippageBps (100)
+      expect(callArgs).toEqual([
+        v2Params.pairAddress,
+        v2Params.tokenIn,
+        v2Params.amountIn,
+        v2Params.amountOutMin,
+        v2Params.recipient,
+      ]);
+      // Explicitly verify slippageBps is NOT in the call
+      expect(callArgs).not.toContain(v2Params.slippageBps);
+    });
+
     it('should return transaction hash', async () => {
       const result = await executeSwap(mockSwapParams, mockConfig, mockProvider);
 
