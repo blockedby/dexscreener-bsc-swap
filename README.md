@@ -77,6 +77,7 @@ MIN_LIQUIDITY_USD=1000                        # Minimum pool liquidity in USD
 - **BSC mainnet only**: This tool only works on Binance Smart Chain mainnet
 - **Official routers only**: Only Uniswap V2 Router and PancakeSwap V3 SwapRouter are supported
 - **BNB input only**: Currently only supports swapping BNB for tokens (not token-to-token)
+- **Only amountIn is supported**: Currently only supports amountIn parameter, not amountOut
 
 ## MEV Protection
 
@@ -94,6 +95,7 @@ RPC_URL=https://rpc.48.club
 - [ ] Multi-hop routing
 - [ ] Price impact warnings
 - [ ] Gas estimation improvements
+- [ ] Support for amountOut parameter
 
 ## License
 
