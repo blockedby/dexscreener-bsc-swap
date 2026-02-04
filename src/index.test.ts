@@ -113,6 +113,7 @@ describe('CLI index.ts', () => {
         pairAddress: '0xPairAddress1',
         tokenIn: WBNB_ADDRESS,
         poolType: 'v2',
+        slippageBps: 100, // 1% slippage = 100 basis points
       });
 
       // Check config is passed
