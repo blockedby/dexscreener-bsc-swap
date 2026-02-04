@@ -223,6 +223,7 @@ describe('types', () => {
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB for buy
         amountIn: 1000000000000000000n, // 1 BNB in wei
         amountOutMin: 950000000000000000n, // Calculated from slippage
+        slippageBps: 100, // 1% slippage in basis points
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v3',
       };
@@ -233,6 +234,7 @@ describe('types', () => {
       expect(typeof params.amountIn).toBe('bigint');
       expect(params.amountOutMin).toBe(950000000000000000n);
       expect(typeof params.amountOutMin).toBe('bigint');
+      expect(params.slippageBps).toBe(100);
       expect(params.recipient).toBe('0x742d35Cc6634C0532925a3b844Bc9e7595f12345');
       expect(params.poolType).toBe('v3');
     });
@@ -243,6 +245,7 @@ describe('types', () => {
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
         amountIn: 500000000000000000n, // 0.5 BNB
         amountOutMin: 475000000000000000n,
+        slippageBps: 100,
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v2',
       };
@@ -256,11 +259,52 @@ describe('types', () => {
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
         amountIn: 500000000000000000n,
         amountOutMin: 475000000000000000n,
+        slippageBps: 100,
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v3',
       };
 
       expect(params.poolType).toBe('v3');
+    });
+
+    it('should include slippageBps for V3 price limit calculation', () => {
+      const params: SwapParams = {
+        pairAddress: '0xPancakeV3Pool',
+        tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        amountIn: 1000000000000000000n,
+        amountOutMin: 950000000000000000n,
+        slippageBps: 50, // 0.5% slippage in basis points
+        recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
+        poolType: 'v3',
+      };
+
+      expect(params.slippageBps).toBe(50);
+      expect(typeof params.slippageBps).toBe('number');
+    });
+
+    it('should allow different slippageBps values', () => {
+      const lowSlippage: SwapParams = {
+        pairAddress: '0xPool',
+        tokenIn: '0xTokenIn',
+        amountIn: 1000000000000000000n,
+        amountOutMin: 990000000000000000n,
+        slippageBps: 10, // 0.1%
+        recipient: '0xRecipient',
+        poolType: 'v3',
+      };
+
+      const highSlippage: SwapParams = {
+        pairAddress: '0xPool',
+        tokenIn: '0xTokenIn',
+        amountIn: 1000000000000000000n,
+        amountOutMin: 900000000000000000n,
+        slippageBps: 1000, // 10%
+        recipient: '0xRecipient',
+        poolType: 'v3',
+      };
+
+      expect(lowSlippage.slippageBps).toBe(10);
+      expect(highSlippage.slippageBps).toBe(1000);
     });
   });
 
