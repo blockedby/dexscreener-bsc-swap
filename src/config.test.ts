@@ -97,6 +97,43 @@ describe('config', () => {
       expect(() => loadConfig()).toThrow('Missing required environment variable: PRIVATE_KEY');
     });
 
+    it('should throw error if PRIVATE_KEY is empty string', async () => {
+      process.env.PRIVATE_KEY = '';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+      const { loadConfig } = await import('./config');
+
+      expect(() => loadConfig()).toThrow('Missing required environment variable: PRIVATE_KEY');
+    });
+
+    it('should throw error if PRIVATE_KEY is whitespace-only', async () => {
+      process.env.PRIVATE_KEY = '   ';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+      const { loadConfig } = await import('./config');
+
+      expect(() => loadConfig()).toThrow('PRIVATE_KEY cannot be empty or whitespace');
+    });
+
+    it('should throw error if PRIVATE_KEY is tabs and spaces only', async () => {
+      process.env.PRIVATE_KEY = '\t  \t';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+      const { loadConfig } = await import('./config');
+
+      expect(() => loadConfig()).toThrow('PRIVATE_KEY cannot be empty or whitespace');
+    });
+
+    it('should trim whitespace from valid PRIVATE_KEY', async () => {
+      process.env.PRIVATE_KEY = '  0xabc123  ';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.privateKey).toBe('0xabc123');
+    });
+
     it('should throw error if UNIVERSAL_SWAP_ADDRESS is missing', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       delete process.env.UNIVERSAL_SWAP_ADDRESS;
