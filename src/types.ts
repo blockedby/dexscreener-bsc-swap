@@ -57,13 +57,14 @@ export interface PoolInfo {
  * Parameters for executing a swap
  */
 export interface SwapParams {
-  pairAddress: string;      // Pool address from Dexscreener
+  pairAddress: string;      // Pool address from Dexscreener (kept for reference)
   tokenIn: string;          // Token being swapped in (WBNB address for buy)
+  tokenOut: string;         // Token being swapped out (the token to receive)
   amountIn: bigint;         // Amount in wei
   amountOutMin: bigint;     // Calculated from slippage, for contract
   slippageBps: number;      // Slippage in basis points (100 = 1%) for V3 price limit
   recipient: string;        // Address to receive tokens
-  poolType: PoolLabel;      // v2 or v3 - determines which contract function
+  poolType: PoolLabel;      // v2 or v3 - determines which router to use
   deadline: bigint;         // Unix timestamp when transaction expires
 }
 

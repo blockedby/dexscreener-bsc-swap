@@ -217,10 +217,11 @@ describe('types', () => {
   });
 
   describe('SwapParams', () => {
-    it('should have all required fields for contract compatibility', () => {
+    it('should have all required fields for router compatibility', () => {
       const params: SwapParams = {
         pairAddress: '0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e',
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB for buy
+        tokenOut: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', // CAKE
         amountIn: 1000000000000000000n, // 1 BNB in wei
         amountOutMin: 950000000000000000n, // Calculated from slippage
         slippageBps: 100, // 1% slippage in basis points
@@ -231,6 +232,7 @@ describe('types', () => {
 
       expect(params.pairAddress).toBe('0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e');
       expect(params.tokenIn).toBe('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c');
+      expect(params.tokenOut).toBe('0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82');
       expect(params.amountIn).toBe(1000000000000000000n);
       expect(typeof params.amountIn).toBe('bigint');
       expect(params.amountOutMin).toBe(950000000000000000n);
@@ -246,6 +248,7 @@ describe('types', () => {
       const params: SwapParams = {
         pairAddress: '0xPancakeV2Pair',
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        tokenOut: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
         amountIn: 500000000000000000n, // 0.5 BNB
         amountOutMin: 475000000000000000n,
         slippageBps: 100,
@@ -261,6 +264,7 @@ describe('types', () => {
       const params: SwapParams = {
         pairAddress: '0xPancakeV3Pool',
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        tokenOut: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
         amountIn: 500000000000000000n,
         amountOutMin: 475000000000000000n,
         slippageBps: 100,
@@ -276,6 +280,7 @@ describe('types', () => {
       const params: SwapParams = {
         pairAddress: '0xPancakeV3Pool',
         tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+        tokenOut: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
         amountIn: 1000000000000000000n,
         amountOutMin: 950000000000000000n,
         slippageBps: 50, // 0.5% slippage in basis points
@@ -292,6 +297,7 @@ describe('types', () => {
       const lowSlippage: SwapParams = {
         pairAddress: '0xPool',
         tokenIn: '0xTokenIn',
+        tokenOut: '0xTokenOut',
         amountIn: 1000000000000000000n,
         amountOutMin: 990000000000000000n,
         slippageBps: 10, // 0.1%
@@ -303,6 +309,7 @@ describe('types', () => {
       const highSlippage: SwapParams = {
         pairAddress: '0xPool',
         tokenIn: '0xTokenIn',
+        tokenOut: '0xTokenOut',
         amountIn: 1000000000000000000n,
         amountOutMin: 900000000000000000n,
         slippageBps: 1000, // 10%
@@ -323,6 +330,7 @@ describe('types', () => {
       const params: SwapParams = {
         pairAddress: '0xPool',
         tokenIn: '0xTokenIn',
+        tokenOut: '0xTokenOut',
         amountIn: 1000000000000000000n,
         amountOutMin: 990000000000000000n,
         slippageBps: 100,
@@ -335,6 +343,22 @@ describe('types', () => {
       expect(typeof params.deadline).toBe('bigint');
       // Deadline should be in the future
       expect(Number(params.deadline)).toBeGreaterThan(currentTimestamp);
+    });
+
+    it('should include tokenOut for router swap path', () => {
+      const params: SwapParams = {
+        pairAddress: '0xPool',
+        tokenIn: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
+        tokenOut: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', // CAKE
+        amountIn: 1000000000000000000n,
+        amountOutMin: 990000000000000000n,
+        slippageBps: 100,
+        recipient: '0xRecipient',
+        poolType: 'v2',
+        deadline: 1700000000n,
+      };
+
+      expect(params.tokenOut).toBe('0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82');
     });
   });
 

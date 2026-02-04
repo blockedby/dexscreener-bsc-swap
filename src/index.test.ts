@@ -146,6 +146,7 @@ describe('CLI index.ts', () => {
       expect(swapCall[0]).toMatchObject({
         pairAddress: '0xPairAddress1',
         tokenIn: WBNB_ADDRESS,
+        tokenOut: '0xTokenAddress', // The token user wants to buy
         poolType: 'v2',
         slippageBps: 100, // 1% slippage = 100 basis points
       });

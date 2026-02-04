@@ -102,6 +102,7 @@ export async function runSwap(
   const swapParams: SwapParams = {
     pairAddress: pool.pairAddress,
     tokenIn: WBNB_ADDRESS,
+    tokenOut: tokenAddress,  // The token user wants to buy
     amountIn,
     amountOutMin,
     slippageBps,
