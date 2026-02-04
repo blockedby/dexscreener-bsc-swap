@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { JsonRpcProvider, Wallet, Contract } from 'ethers';
-import { calculateAmountOutMin, executeSwap } from './swap';
+import { calculateAmountOutMin, executeSwap, getExpectedOutput, PANCAKESWAP_V2_ROUTER } from './swap';
 import { SwapParams, Config, PoolLabel } from './types';
 
 // Mock ethers
@@ -15,68 +15,177 @@ vi.mock('ethers', async () => {
 
 describe('swap', () => {
   describe('calculateAmountOutMin', () => {
-    it('should calculate minimum output with 1% slippage', () => {
-      const amountIn = 1000n;
-      const slippage = 1;
+    it('should calculate minimum output with 100 bps (1%) slippage', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 100; // 1%
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 1000 * (100 - 1) / 100 = 990
+      // 1000 * (10000 - 100) / 10000 = 1000 * 9900 / 10000 = 990
       expect(result).toBe(990n);
     });
 
-    it('should calculate minimum output with 0% slippage', () => {
-      const amountIn = 1000n;
-      const slippage = 0;
+    it('should calculate minimum output with 0 bps (0%) slippage', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 0;
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 1000 * (100 - 0) / 100 = 1000
+      // 1000 * (10000 - 0) / 10000 = 1000
       expect(result).toBe(1000n);
     });
 
-    it('should calculate minimum output with 5% slippage', () => {
-      const amountIn = 1000n;
-      const slippage = 5;
+    it('should calculate minimum output with 500 bps (5%) slippage', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 500; // 5%
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 1000 * (100 - 5) / 100 = 950
+      // 1000 * (10000 - 500) / 10000 = 1000 * 9500 / 10000 = 950
       expect(result).toBe(950n);
     });
 
     it('should handle large amounts correctly', () => {
       // 1 ETH = 10^18 wei
-      const amountIn = 1000000000000000000n;
-      const slippage = 1;
+      const expectedOutput = 1000000000000000000n;
+      const slippageBps = 100; // 1%
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 10^18 * 99 / 100 = 99 * 10^16
+      // 10^18 * 9900 / 10000 = 99 * 10^16
       expect(result).toBe(990000000000000000n);
     });
 
-    it('should handle 100% slippage (edge case)', () => {
-      const amountIn = 1000n;
-      const slippage = 100;
+    it('should handle 10000 bps (100%) slippage (edge case)', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 10000; // 100%
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 1000 * (100 - 100) / 100 = 0
+      // 1000 * (10000 - 10000) / 10000 = 0
       expect(result).toBe(0n);
     });
 
-    it('should handle fractional slippage rounded down', () => {
-      // Note: BigInt division truncates, so 1000 * 97.5 / 100 would need careful handling
-      // But since slippage is passed as a number and we use (100 - slippage),
-      // we need to handle this at the formula level
-      const amountIn = 1000n;
-      const slippage = 0.5;
+    it('should handle 50 bps (0.5%) slippage', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 50; // 0.5%
 
-      const result = calculateAmountOutMin(amountIn, slippage);
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
 
-      // 1000 * (100 - 0.5) / 100 = 1000 * 99.5 / 100 = 995
+      // 1000 * (10000 - 50) / 10000 = 1000 * 9950 / 10000 = 995
       expect(result).toBe(995n);
+    });
+
+    it('should handle 25 bps (0.25%) slippage', () => {
+      const expectedOutput = 10000n;
+      const slippageBps = 25; // 0.25%
+
+      const result = calculateAmountOutMin(expectedOutput, slippageBps);
+
+      // 10000 * (10000 - 25) / 10000 = 10000 * 9975 / 10000 = 9975
+      expect(result).toBe(9975n);
+    });
+
+    it('should throw error for negative slippage', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = -1;
+
+      expect(() => calculateAmountOutMin(expectedOutput, slippageBps)).toThrow(
+        'Slippage must be between 0 and 10000 basis points'
+      );
+    });
+
+    it('should throw error for slippage over 10000 bps', () => {
+      const expectedOutput = 1000n;
+      const slippageBps = 10001;
+
+      expect(() => calculateAmountOutMin(expectedOutput, slippageBps)).toThrow(
+        'Slippage must be between 0 and 10000 basis points'
+      );
+    });
+  });
+
+  describe('getExpectedOutput', () => {
+    let mockProvider: JsonRpcProvider;
+    let mockGetAmountsOut: Mock;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+
+      mockProvider = {} as JsonRpcProvider;
+      mockGetAmountsOut = vi.fn();
+
+      // Mock Contract constructor to return an object with getAmountsOut
+      (Contract as unknown as Mock).mockReturnValue({
+        getAmountsOut: mockGetAmountsOut,
+      });
+    });
+
+    it('should call router.getAmountsOut with correct parameters', async () => {
+      const amountIn = 1000000000000000000n; // 1 BNB
+      const tokenIn = '0xTokenIn';
+      const tokenOut = '0xTokenOut';
+      const expectedAmounts = [amountIn, 5000000000000000000n]; // 5 tokens out
+
+      mockGetAmountsOut.mockResolvedValue(expectedAmounts);
+
+      await getExpectedOutput(mockProvider, amountIn, tokenIn, tokenOut);
+
+      expect(mockGetAmountsOut).toHaveBeenCalledWith(amountIn, [tokenIn, tokenOut]);
+    });
+
+    it('should create Contract with PancakeSwap V2 Router address', async () => {
+      const amountIn = 1000000000000000000n;
+      const expectedAmounts = [amountIn, 5000000000000000000n];
+
+      mockGetAmountsOut.mockResolvedValue(expectedAmounts);
+
+      await getExpectedOutput(mockProvider, amountIn, '0xTokenIn', '0xTokenOut');
+
+      expect(Contract).toHaveBeenCalledWith(
+        PANCAKESWAP_V2_ROUTER,
+        expect.any(Array),
+        mockProvider
+      );
+    });
+
+    it('should return the second element (output amount) from amounts array', async () => {
+      const amountIn = 1000000000000000000n;
+      const expectedOutput = 5000000000000000000n;
+      const expectedAmounts = [amountIn, expectedOutput];
+
+      mockGetAmountsOut.mockResolvedValue(expectedAmounts);
+
+      const result = await getExpectedOutput(mockProvider, amountIn, '0xTokenIn', '0xTokenOut');
+
+      expect(result).toBe(expectedOutput);
+    });
+
+    it('should propagate errors from router call', async () => {
+      mockGetAmountsOut.mockRejectedValue(new Error('Insufficient liquidity'));
+
+      await expect(
+        getExpectedOutput(mockProvider, 1000n, '0xTokenIn', '0xTokenOut')
+      ).rejects.toThrow('Insufficient liquidity');
+    });
+
+    it('should pass correct ABI to Contract constructor', async () => {
+      const expectedAmounts = [1000n, 5000n];
+      mockGetAmountsOut.mockResolvedValue(expectedAmounts);
+
+      await getExpectedOutput(mockProvider, 1000n, '0xTokenIn', '0xTokenOut');
+
+      const contractCall = (Contract as unknown as Mock).mock.calls[0];
+      const abi = contractCall[1];
+
+      expect(abi).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'getAmountsOut',
+            type: 'function',
+          }),
+        ])
+      );
     });
   });
 

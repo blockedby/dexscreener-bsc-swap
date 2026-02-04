@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { parseEther, JsonRpcProvider, Wallet } from 'ethers';
 import { loadConfig, WBNB_ADDRESS } from './config';
 import { fetchPools, selectBestPool } from './dexscreener';
-import { executeSwap, calculateAmountOutMin } from './swap';
+import { executeSwap, calculateAmountOutMin, getExpectedOutput } from './swap';
 import { info, error } from './logger';
 import type { SwapParams, DexscreenerPair } from './types';
 
@@ -68,8 +68,15 @@ export async function runSwap(
   // Parse amount to wei
   const amountIn = parseEther(amount);
 
-  // Calculate minimum output with slippage
-  const amountOutMin = calculateAmountOutMin(amountIn, slippage);
+  // Convert slippage to basis points (1% = 100 bps)
+  const slippageBps = Math.floor(slippage * 100);
+
+  // Get expected output from router
+  info(`Getting expected output from PancakeSwap router...`);
+  const expectedOutput = await getExpectedOutput(provider, amountIn, WBNB_ADDRESS, tokenAddress);
+
+  // Calculate minimum output with slippage applied to expected output
+  const amountOutMin = calculateAmountOutMin(expectedOutput, slippageBps);
 
   // Prepare swap parameters
   const swapParams: SwapParams = {
@@ -77,7 +84,7 @@ export async function runSwap(
     tokenIn: WBNB_ADDRESS,
     amountIn,
     amountOutMin,
-    slippageBps: Math.floor(slippage * 100), // 1% -> 100 bps
+    slippageBps,
     recipient: wallet.address,
     poolType: pool.poolType,
   };
