@@ -32,7 +32,6 @@ describe('config', () => {
   describe('loadConfig', () => {
     it('should load required PRIVATE_KEY from environment', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
       const config = loadConfig();
@@ -40,19 +39,8 @@ describe('config', () => {
       expect(config.privateKey).toBe('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
     });
 
-    it('should load required UNIVERSAL_SWAP_ADDRESS from environment', async () => {
-      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0xabcdef1234567890abcdef1234567890abcdef12';
-
-      const { loadConfig } = await import('./config');
-      const config = loadConfig();
-
-      expect(config.universalSwapAddress).toBe('0xabcdef1234567890abcdef1234567890abcdef12');
-    });
-
     it('should use default RPC_URL if not provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       delete process.env.RPC_URL;
 
       const { loadConfig } = await import('./config');
@@ -63,7 +51,6 @@ describe('config', () => {
 
     it('should use custom RPC_URL if provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       process.env.RPC_URL = 'https://rpc.48.club';
 
       const { loadConfig } = await import('./config');
@@ -74,7 +61,6 @@ describe('config', () => {
 
     it('should use default SLIPPAGE of 1 if not provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       delete process.env.SLIPPAGE;
 
       const { loadConfig } = await import('./config');
@@ -85,7 +71,6 @@ describe('config', () => {
 
     it('should use custom SLIPPAGE if provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       process.env.SLIPPAGE = '2.5';
 
       const { loadConfig } = await import('./config');
@@ -96,7 +81,6 @@ describe('config', () => {
 
     it('should throw error if PRIVATE_KEY is missing', async () => {
       delete process.env.PRIVATE_KEY;
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
 
@@ -105,7 +89,6 @@ describe('config', () => {
 
     it('should throw error if PRIVATE_KEY is empty string', async () => {
       process.env.PRIVATE_KEY = '';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
 
@@ -114,7 +97,6 @@ describe('config', () => {
 
     it('should throw error if PRIVATE_KEY is whitespace-only', async () => {
       process.env.PRIVATE_KEY = '   ';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
 
@@ -123,7 +105,6 @@ describe('config', () => {
 
     it('should throw error if PRIVATE_KEY is tabs and spaces only', async () => {
       process.env.PRIVATE_KEY = '\t  \t';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
 
@@ -132,7 +113,6 @@ describe('config', () => {
 
     it('should trim whitespace from valid PRIVATE_KEY', async () => {
       process.env.PRIVATE_KEY = '  0xabc123  ';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
 
       const { loadConfig } = await import('./config');
       const config = loadConfig();
@@ -140,19 +120,8 @@ describe('config', () => {
       expect(config.privateKey).toBe('0xabc123');
     });
 
-    it('should use empty string for UNIVERSAL_SWAP_ADDRESS if not provided', async () => {
-      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      delete process.env.UNIVERSAL_SWAP_ADDRESS;
-
-      const { loadConfig } = await import('./config');
-      const config = loadConfig();
-
-      expect(config.universalSwapAddress).toBe('');
-    });
-
     it('should return a Config object with all fields', async () => {
       process.env.PRIVATE_KEY = '0xabc123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0xdef456';
       process.env.RPC_URL = 'https://custom-rpc.example.com';
       process.env.SLIPPAGE = '0.5';
       process.env.DEADLINE_SECONDS = '60';
@@ -165,7 +134,6 @@ describe('config', () => {
         privateKey: '0xabc123',
         rpcUrl: 'https://custom-rpc.example.com',
         slippage: 0.5,
-        universalSwapAddress: '0xdef456',
         deadlineSeconds: 60,
         minLiquidityUsd: 5000,
         useUniversalRouter: false,
@@ -174,7 +142,6 @@ describe('config', () => {
 
     it('should use default DEADLINE_SECONDS of 30 if not provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       delete process.env.DEADLINE_SECONDS;
 
       const { loadConfig } = await import('./config');
@@ -185,7 +152,6 @@ describe('config', () => {
 
     it('should use custom DEADLINE_SECONDS if provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       process.env.DEADLINE_SECONDS = '120';
 
       const { loadConfig } = await import('./config');
@@ -196,7 +162,6 @@ describe('config', () => {
 
     it('should parse DEADLINE_SECONDS as integer', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.DEADLINE_SECONDS = '45';
 
       const { loadConfig } = await import('./config');
@@ -208,7 +173,6 @@ describe('config', () => {
 
     it('should parse integer SLIPPAGE correctly', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.SLIPPAGE = '5';
 
       const { loadConfig } = await import('./config');
@@ -220,7 +184,6 @@ describe('config', () => {
 
     it('should use default MIN_LIQUIDITY_USD of 1000 if not provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       delete process.env.MIN_LIQUIDITY_USD;
 
       const { loadConfig } = await import('./config');
@@ -231,7 +194,6 @@ describe('config', () => {
 
     it('should use custom MIN_LIQUIDITY_USD if provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
       process.env.MIN_LIQUIDITY_USD = '5000';
 
       const { loadConfig } = await import('./config');
@@ -242,7 +204,6 @@ describe('config', () => {
 
     it('should parse MIN_LIQUIDITY_USD as float', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.MIN_LIQUIDITY_USD = '1500.50';
 
       const { loadConfig } = await import('./config');
@@ -254,7 +215,6 @@ describe('config', () => {
 
     it('should parse integer MIN_LIQUIDITY_USD correctly', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.MIN_LIQUIDITY_USD = '10000';
 
       const { loadConfig } = await import('./config');
@@ -266,7 +226,6 @@ describe('config', () => {
 
     it('should use default USE_UNIVERSAL_ROUTER of false if not provided', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       delete process.env.USE_UNIVERSAL_ROUTER;
 
       const { loadConfig } = await import('./config');
@@ -277,7 +236,6 @@ describe('config', () => {
 
     it('should parse USE_UNIVERSAL_ROUTER=true correctly', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.USE_UNIVERSAL_ROUTER = 'true';
 
       const { loadConfig } = await import('./config');
@@ -288,7 +246,6 @@ describe('config', () => {
 
     it('should parse USE_UNIVERSAL_ROUTER=TRUE case-insensitively', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.USE_UNIVERSAL_ROUTER = 'TRUE';
 
       const { loadConfig } = await import('./config');
@@ -299,7 +256,6 @@ describe('config', () => {
 
     it('should parse USE_UNIVERSAL_ROUTER=false correctly', async () => {
       process.env.PRIVATE_KEY = '0x123';
-      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
       process.env.USE_UNIVERSAL_ROUTER = 'false';
 
       const { loadConfig } = await import('./config');

@@ -76,7 +76,6 @@ export interface Config {
   privateKey: string;
   rpcUrl: string;
   slippage: number;
-  universalSwapAddress: string;
   deadlineSeconds: number;
   minLiquidityUsd: number;
   useUniversalRouter: boolean;

@@ -48,7 +48,6 @@ describe('CLI index.ts', () => {
     privateKey: '0xTestPrivateKey',
     rpcUrl: 'https://test-rpc.example.com',
     slippage: 1,
-    universalSwapAddress: '0xUniversalSwapAddress',
     deadlineSeconds: 30,
     minLiquidityUsd: 1000,
   };

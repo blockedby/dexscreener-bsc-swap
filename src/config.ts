@@ -81,7 +81,6 @@ export function loadConfig(): Config {
     throw new Error('PRIVATE_KEY cannot be empty or whitespace');
   }
 
-  // UNIVERSAL_SWAP_ADDRESS is optional (legacy, not used with official routers)
 
   // Parse slippage as a number, default to 1 if not provided
   const slippage = process.env.SLIPPAGE
@@ -107,7 +106,6 @@ export function loadConfig(): Config {
     privateKey: trimmedPrivateKey,
     rpcUrl: process.env.RPC_URL || DEFAULT_RPC_URL,
     slippage,
-    universalSwapAddress: process.env.UNIVERSAL_SWAP_ADDRESS ?? '',
     deadlineSeconds,
     minLiquidityUsd,
     useUniversalRouter,

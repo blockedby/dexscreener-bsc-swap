@@ -363,22 +363,22 @@ describe('types', () => {
   });
 
   describe('Config', () => {
-    it('should have privateKey, rpcUrl, slippage, universalSwapAddress, deadlineSeconds, and minLiquidityUsd', () => {
+    it('should have all required fields', () => {
       const config: Config = {
         privateKey: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
         rpcUrl: 'https://bsc-dataseed.binance.org/',
         slippage: 1,
-        universalSwapAddress: '0xUniversalSwapContractAddress',
         deadlineSeconds: 30,
         minLiquidityUsd: 1000,
+        useUniversalRouter: false,
       };
 
       expect(config.privateKey).toContain('0x');
       expect(config.rpcUrl).toContain('bsc');
       expect(config.slippage).toBe(1);
-      expect(config.universalSwapAddress).toBe('0xUniversalSwapContractAddress');
       expect(config.deadlineSeconds).toBe(30);
       expect(config.minLiquidityUsd).toBe(1000);
+      expect(config.useUniversalRouter).toBe(false);
     });
 
     it('should allow different deadline values', () => {
@@ -386,18 +386,18 @@ describe('types', () => {
         privateKey: '0x123',
         rpcUrl: 'https://rpc.example.com',
         slippage: 1,
-        universalSwapAddress: '0x456',
         deadlineSeconds: 10,
         minLiquidityUsd: 0,
+        useUniversalRouter: false,
       };
 
       const longDeadline: Config = {
         privateKey: '0x123',
         rpcUrl: 'https://rpc.example.com',
         slippage: 1,
-        universalSwapAddress: '0x456',
         deadlineSeconds: 300,
         minLiquidityUsd: 0,
+        useUniversalRouter: true,
       };
 
       expect(shortDeadline.deadlineSeconds).toBe(10);

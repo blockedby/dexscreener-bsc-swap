@@ -1,9 +1,9 @@
 import { Command } from 'commander';
-import { parseEther, formatEther, formatUnits, JsonRpcProvider, Wallet } from 'ethers';
+import { parseEther, formatUnits, JsonRpcProvider, Wallet } from 'ethers';
 import { loadConfig, WBNB_ADDRESS, validateSlippage } from './config';
 import { fetchPools, selectBestPool } from './dexscreener';
 import { executeSwap, calculateAmountOutMin, getExpectedOutput } from './swap';
-import { info, error, warn } from './logger';
+import { info, error } from './logger';
 import type { SwapParams, DexscreenerPair } from './types';
 
 /**

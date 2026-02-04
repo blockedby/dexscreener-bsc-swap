@@ -1,0 +1,35 @@
+[INFO] Starting swap: 0x55d398326f99059ff775485246999027b3197955 amount=0.01 slippage=default
+[INFO] === BSC Swap Bot ===
+[INFO] Token: 0x55d398326f99059ff775485246999027b3197955
+[INFO] Amount: 0.01 BNB
+[INFO] Slippage: 0.1%
+[INFO] Deadline: 30s
+[INFO] Min liquidity: $1,000
+[INFO] 
+[INFO] Fetching pools from Dexscreener...
+[INFO] Found: 30 total, 30 BSC, 9 V2/V3
+[INFO] 
+[INFO] Available pools (sorted by liquidity):
+[INFO] Pool 1: pancakeswap (v2), liquidity: $68,199,133
+[INFO] Pool 2: pancakeswap (v3), liquidity: $37,693,011
+[INFO] Pool 3: pancakeswap (v3), liquidity: $34,074,260
+[INFO] Pool 4: pancakeswap (v2), liquidity: $2,341,969
+[INFO] Pool 5: pancakeswap (v3), liquidity: $1,071,613
+[INFO] Pool 6: squadswap (v3), liquidity: $104,871
+[INFO] Pool 7: sushiswap (v3), liquidity: $10,217
+[INFO] Pool 8: sushiswap (v3), liquidity: $4,377
+[INFO] Pool 9: uniswap (v2), liquidity: $55
+[INFO] 
+[INFO] Selected pool: PANCAKESWAP V2
+[INFO]   Address: 0xCAaF3c41a40103a23Eeaa4BbA468AF3cF5b0e0D8
+[INFO]   Liquidity: $68,199,133
+[INFO] 
+[INFO] Wallet: 0xF8e4c128325EeB95Ec7662A8EB40CDB3a4E40425
+[INFO] 
+[INFO] Querying PancakeSwap router for expected output...
+[INFO] Expected output: 7.259011593235669999 tokens
+[INFO] Min output (0.1% slippage): 7.251752581642434329 tokens
+[INFO] 
+[INFO] Executing swap via PancakeSwap V2 Router...
+[INFO]   0.01 BNB → TOKEN
+[INFO]   Deadline: 6:14:12 PM
