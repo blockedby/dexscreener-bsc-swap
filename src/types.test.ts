@@ -226,6 +226,7 @@ describe('types', () => {
         slippageBps: 100, // 1% slippage in basis points
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v3',
+        deadline: 1700000000n, // Unix timestamp
       };
 
       expect(params.pairAddress).toBe('0x62Fcb3C1794FB95BD8B1A97f6Ad5D8a7e4943a1e');
@@ -237,6 +238,8 @@ describe('types', () => {
       expect(params.slippageBps).toBe(100);
       expect(params.recipient).toBe('0x742d35Cc6634C0532925a3b844Bc9e7595f12345');
       expect(params.poolType).toBe('v3');
+      expect(params.deadline).toBe(1700000000n);
+      expect(typeof params.deadline).toBe('bigint');
     });
 
     it('should work with v2 pool type', () => {
@@ -248,6 +251,7 @@ describe('types', () => {
         slippageBps: 100,
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v2',
+        deadline: 1700000000n,
       };
 
       expect(params.poolType).toBe('v2');
@@ -262,6 +266,7 @@ describe('types', () => {
         slippageBps: 100,
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v3',
+        deadline: 1700000000n,
       };
 
       expect(params.poolType).toBe('v3');
@@ -276,6 +281,7 @@ describe('types', () => {
         slippageBps: 50, // 0.5% slippage in basis points
         recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f12345',
         poolType: 'v3',
+        deadline: 1700000000n,
       };
 
       expect(params.slippageBps).toBe(50);
@@ -291,6 +297,7 @@ describe('types', () => {
         slippageBps: 10, // 0.1%
         recipient: '0xRecipient',
         poolType: 'v3',
+        deadline: 1700000000n,
       };
 
       const highSlippage: SwapParams = {
@@ -301,26 +308,76 @@ describe('types', () => {
         slippageBps: 1000, // 10%
         recipient: '0xRecipient',
         poolType: 'v3',
+        deadline: 1700000000n,
       };
 
       expect(lowSlippage.slippageBps).toBe(10);
       expect(highSlippage.slippageBps).toBe(1000);
     });
+
+    it('should include deadline as bigint Unix timestamp', () => {
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const deadlineSeconds = 30;
+      const deadline = BigInt(currentTimestamp + deadlineSeconds);
+
+      const params: SwapParams = {
+        pairAddress: '0xPool',
+        tokenIn: '0xTokenIn',
+        amountIn: 1000000000000000000n,
+        amountOutMin: 990000000000000000n,
+        slippageBps: 100,
+        recipient: '0xRecipient',
+        poolType: 'v3',
+        deadline,
+      };
+
+      expect(params.deadline).toBe(deadline);
+      expect(typeof params.deadline).toBe('bigint');
+      // Deadline should be in the future
+      expect(Number(params.deadline)).toBeGreaterThan(currentTimestamp);
+    });
   });
 
   describe('Config', () => {
-    it('should have privateKey, rpcUrl, slippage, and universalSwapAddress', () => {
+    it('should have privateKey, rpcUrl, slippage, universalSwapAddress, deadlineSeconds, and minLiquidityUsd', () => {
       const config: Config = {
         privateKey: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
         rpcUrl: 'https://bsc-dataseed.binance.org/',
         slippage: 1,
         universalSwapAddress: '0xUniversalSwapContractAddress',
+        deadlineSeconds: 30,
+        minLiquidityUsd: 1000,
       };
 
       expect(config.privateKey).toContain('0x');
       expect(config.rpcUrl).toContain('bsc');
       expect(config.slippage).toBe(1);
       expect(config.universalSwapAddress).toBe('0xUniversalSwapContractAddress');
+      expect(config.deadlineSeconds).toBe(30);
+      expect(config.minLiquidityUsd).toBe(1000);
+    });
+
+    it('should allow different deadline values', () => {
+      const shortDeadline: Config = {
+        privateKey: '0x123',
+        rpcUrl: 'https://rpc.example.com',
+        slippage: 1,
+        universalSwapAddress: '0x456',
+        deadlineSeconds: 10,
+        minLiquidityUsd: 0,
+      };
+
+      const longDeadline: Config = {
+        privateKey: '0x123',
+        rpcUrl: 'https://rpc.example.com',
+        slippage: 1,
+        universalSwapAddress: '0x456',
+        deadlineSeconds: 300,
+        minLiquidityUsd: 0,
+      };
+
+      expect(shortDeadline.deadlineSeconds).toBe(10);
+      expect(longDeadline.deadlineSeconds).toBe(300);
     });
   });
 

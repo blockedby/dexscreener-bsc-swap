@@ -45,6 +45,16 @@ const DEFAULT_RPC_URL = 'https://bsc-dataseed.binance.org/';
 const DEFAULT_SLIPPAGE = 1;
 
 /**
+ * Default transaction deadline in seconds
+ */
+const DEFAULT_DEADLINE_SECONDS = 30;
+
+/**
+ * Default minimum liquidity in USD
+ */
+const DEFAULT_MIN_LIQUIDITY_USD = 1000;
+
+/**
  * Loads configuration from environment variables.
  * Calls dotenv.config() to load .env file, then validates required variables.
  *
@@ -75,10 +85,22 @@ export function loadConfig(): Config {
     ? parseFloat(process.env.SLIPPAGE)
     : DEFAULT_SLIPPAGE;
 
+  // Parse deadline as an integer, default to 30 if not provided
+  const deadlineSeconds = process.env.DEADLINE_SECONDS
+    ? parseInt(process.env.DEADLINE_SECONDS, 10)
+    : DEFAULT_DEADLINE_SECONDS;
+
+  // Parse minimum liquidity as a number, default to 1000 if not provided
+  const minLiquidityUsd = process.env.MIN_LIQUIDITY_USD
+    ? parseFloat(process.env.MIN_LIQUIDITY_USD)
+    : DEFAULT_MIN_LIQUIDITY_USD;
+
   return {
     privateKey: trimmedPrivateKey,
     rpcUrl: process.env.RPC_URL || DEFAULT_RPC_URL,
     slippage,
     universalSwapAddress: process.env.UNIVERSAL_SWAP_ADDRESS,
+    deadlineSeconds,
+    minLiquidityUsd,
   };
 }

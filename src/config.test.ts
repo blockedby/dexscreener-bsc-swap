@@ -148,6 +148,8 @@ describe('config', () => {
       process.env.UNIVERSAL_SWAP_ADDRESS = '0xdef456';
       process.env.RPC_URL = 'https://custom-rpc.example.com';
       process.env.SLIPPAGE = '0.5';
+      process.env.DEADLINE_SECONDS = '60';
+      process.env.MIN_LIQUIDITY_USD = '5000';
 
       const { loadConfig } = await import('./config');
       const config: Config = loadConfig();
@@ -157,7 +159,43 @@ describe('config', () => {
         rpcUrl: 'https://custom-rpc.example.com',
         slippage: 0.5,
         universalSwapAddress: '0xdef456',
+        deadlineSeconds: 60,
+        minLiquidityUsd: 5000,
       });
+    });
+
+    it('should use default DEADLINE_SECONDS of 30 if not provided', async () => {
+      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+      delete process.env.DEADLINE_SECONDS;
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.deadlineSeconds).toBe(30);
+    });
+
+    it('should use custom DEADLINE_SECONDS if provided', async () => {
+      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+      process.env.DEADLINE_SECONDS = '120';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.deadlineSeconds).toBe(120);
+    });
+
+    it('should parse DEADLINE_SECONDS as integer', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.DEADLINE_SECONDS = '45';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.deadlineSeconds).toBe(45);
+      expect(typeof config.deadlineSeconds).toBe('number');
     });
 
     it('should parse integer SLIPPAGE correctly', async () => {
@@ -170,6 +208,52 @@ describe('config', () => {
 
       expect(config.slippage).toBe(5);
       expect(typeof config.slippage).toBe('number');
+    });
+
+    it('should use default MIN_LIQUIDITY_USD of 1000 if not provided', async () => {
+      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+      delete process.env.MIN_LIQUIDITY_USD;
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.minLiquidityUsd).toBe(1000);
+    });
+
+    it('should use custom MIN_LIQUIDITY_USD if provided', async () => {
+      process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x1234567890123456789012345678901234567890';
+      process.env.MIN_LIQUIDITY_USD = '5000';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.minLiquidityUsd).toBe(5000);
+    });
+
+    it('should parse MIN_LIQUIDITY_USD as float', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.MIN_LIQUIDITY_USD = '1500.50';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.minLiquidityUsd).toBe(1500.50);
+      expect(typeof config.minLiquidityUsd).toBe('number');
+    });
+
+    it('should parse integer MIN_LIQUIDITY_USD correctly', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.MIN_LIQUIDITY_USD = '10000';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.minLiquidityUsd).toBe(10000);
+      expect(typeof config.minLiquidityUsd).toBe('number');
     });
   });
 

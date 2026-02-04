@@ -64,6 +64,7 @@ export interface SwapParams {
   slippageBps: number;      // Slippage in basis points (100 = 1%) for V3 price limit
   recipient: string;        // Address to receive tokens
   poolType: PoolLabel;      // v2 or v3 - determines which contract function
+  deadline: bigint;         // Unix timestamp when transaction expires
 }
 
 /**
@@ -74,6 +75,8 @@ export interface Config {
   rpcUrl: string;
   slippage: number;
   universalSwapAddress: string;
+  deadlineSeconds: number;
+  minLiquidityUsd: number;
 }
 
 /**

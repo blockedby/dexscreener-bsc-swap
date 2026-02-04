@@ -46,6 +46,8 @@ describe('CLI index.ts', () => {
     rpcUrl: 'https://test-rpc.example.com',
     slippage: 1,
     universalSwapAddress: '0xUniversalSwapAddress',
+    deadlineSeconds: 30,
+    minLiquidityUsd: 1000,
   };
 
   const mockPairs: DexscreenerPair[] = [
@@ -85,10 +87,14 @@ describe('CLI index.ts', () => {
     vi.clearAllMocks();
     (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(mockConfig);
     (fetchPools as ReturnType<typeof vi.fn>).mockResolvedValue(mockPairs);
-    (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue(mockPool);
+    (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue({ success: true, pool: mockPool });
     (executeSwap as ReturnType<typeof vi.fn>).mockResolvedValue('0xTransactionHash');
     (getExpectedOutput as ReturnType<typeof vi.fn>).mockResolvedValue(mockExpectedOutput);
     (calculateAmountOutMin as ReturnType<typeof vi.fn>).mockReturnValue(BigInt(99000000000000000000)); // 99 tokens (1% slippage)
+    // Reset parseEther to default implementation (simulates valid parsing)
+    (parseEther as ReturnType<typeof vi.fn>).mockImplementation(
+      (value: string) => BigInt(Math.floor(parseFloat(value) * 1e18))
+    );
   });
 
   describe('runSwap function', () => {
@@ -103,9 +109,9 @@ describe('CLI index.ts', () => {
       expect(fetchPools).toHaveBeenCalledWith(tokenAddress);
     });
 
-    it('should select best pool from fetched pairs', async () => {
+    it('should select best pool from fetched pairs with minLiquidity', async () => {
       await runSwap('0xTokenAddress', '0.01');
-      expect(selectBestPool).toHaveBeenCalledWith(mockPairs);
+      expect(selectBestPool).toHaveBeenCalledWith(mockPairs, mockConfig.minLiquidityUsd);
     });
 
     it('should get expected output from router before calculating amountOutMin', async () => {
@@ -155,18 +161,22 @@ describe('CLI index.ts', () => {
 
     it('should throw error when no pools are found', async () => {
       (fetchPools as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-      (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue({ success: false, reason: 'no_pools' });
 
       await expect(runSwap('0xTokenAddress', '0.01')).rejects.toThrow(
         'No suitable pools found'
       );
     });
 
-    it('should throw error when selectBestPool returns null', async () => {
-      (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    it('should throw error when selectBestPool returns insufficient liquidity', async () => {
+      (selectBestPool as ReturnType<typeof vi.fn>).mockReturnValue({
+        success: false,
+        reason: 'insufficient_liquidity',
+        minLiquidityUsd: 1000,
+      });
 
       await expect(runSwap('0xTokenAddress', '0.01')).rejects.toThrow(
-        'No suitable pools found'
+        'No pools with sufficient liquidity'
       );
     });
 
@@ -407,6 +417,72 @@ describe('CLI index.ts', () => {
         specificExpectedOutput,
         expect.any(Number)
       );
+    });
+  });
+
+  describe('transaction deadline', () => {
+    it('should include deadline in swap params', async () => {
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].deadline).toBeDefined();
+      expect(typeof swapCall[0].deadline).toBe('bigint');
+    });
+
+    it('should calculate deadline as current timestamp + deadlineSeconds', async () => {
+      const beforeTimestamp = Math.floor(Date.now() / 1000);
+
+      await runSwap('0xTokenAddress', '0.01');
+
+      const afterTimestamp = Math.floor(Date.now() / 1000);
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      const deadline = Number(swapCall[0].deadline);
+
+      // Deadline should be within the expected range (before + 30 to after + 30)
+      expect(deadline).toBeGreaterThanOrEqual(beforeTimestamp + mockConfig.deadlineSeconds);
+      expect(deadline).toBeLessThanOrEqual(afterTimestamp + mockConfig.deadlineSeconds);
+    });
+
+    it('should use config deadlineSeconds for calculation', async () => {
+      const configWith60Seconds = { ...mockConfig, deadlineSeconds: 60 };
+      (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(configWith60Seconds);
+
+      const beforeTimestamp = Math.floor(Date.now() / 1000);
+
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      const deadline = Number(swapCall[0].deadline);
+
+      // Deadline should be approximately current time + 60 seconds
+      expect(deadline).toBeGreaterThanOrEqual(beforeTimestamp + 60);
+      expect(deadline).toBeLessThanOrEqual(beforeTimestamp + 62); // Allow 2 second buffer
+    });
+
+    it('should set deadline in the future', async () => {
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      const deadline = Number(swapCall[0].deadline);
+
+      expect(deadline).toBeGreaterThan(currentTimestamp);
+    });
+
+    it('should handle different deadline values correctly', async () => {
+      // Test with 10 seconds
+      const configWith10Seconds = { ...mockConfig, deadlineSeconds: 10 };
+      (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(configWith10Seconds);
+
+      const before10 = Math.floor(Date.now() / 1000);
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall10 = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      const deadline10 = Number(swapCall10[0].deadline);
+
+      expect(deadline10).toBeGreaterThanOrEqual(before10 + 10);
+      expect(deadline10).toBeLessThanOrEqual(before10 + 12);
     });
   });
 });

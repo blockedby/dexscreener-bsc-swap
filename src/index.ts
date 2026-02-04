@@ -52,14 +52,20 @@ export async function runSwap(
   // Log each pool's info
   pairs.forEach((pair, index) => logPoolInfo(pair, index));
 
-  // Select the best pool
-  const pool = selectBestPool(pairs);
+  // Select the best pool with minimum liquidity filter
+  const result = selectBestPool(pairs, config.minLiquidityUsd);
 
-  if (!pool) {
+  if (!result.success) {
+    if (result.reason === 'insufficient_liquidity') {
+      const message = `No pools with sufficient liquidity (minimum $${result.minLiquidityUsd.toLocaleString('en-US')})`;
+      error(message);
+      throw new Error(message);
+    }
     error('No suitable pools found for this token');
     throw new Error('No suitable pools found');
   }
 
+  const pool = result.pool;
   info(`Selected: ${pool.dexId} ${pool.poolType} (${pool.pairAddress}) — highest liquidity`);
 
   // Create provider and wallet
@@ -89,6 +95,9 @@ export async function runSwap(
   // Calculate minimum output with slippage applied to expected output
   const amountOutMin = calculateAmountOutMin(expectedOutput, slippageBps);
 
+  // Calculate deadline as current timestamp + deadlineSeconds
+  const deadline = BigInt(Math.floor(Date.now() / 1000) + config.deadlineSeconds);
+
   // Prepare swap parameters
   const swapParams: SwapParams = {
     pairAddress: pool.pairAddress,
@@ -98,6 +107,7 @@ export async function runSwap(
     slippageBps,
     recipient: wallet.address,
     poolType: pool.poolType,
+    deadline,
   };
 
   // Log swap execution
