@@ -26,6 +26,7 @@ const UNIVERSAL_SWAP_ABI = [
       { name: 'tokenIn', type: 'address' },
       { name: 'amountIn', type: 'uint256' },
       { name: 'amountOutMin', type: 'uint256' },
+      { name: 'slippageBps', type: 'uint256' },
       { name: 'recipient', type: 'address' },
     ],
     outputs: [{ name: '', type: 'uint256' }],
@@ -85,6 +86,7 @@ export async function executeSwap(
       params.tokenIn,
       params.amountIn,
       params.amountOutMin,
+      params.slippageBps,
       params.recipient
     );
   }

@@ -99,6 +99,7 @@ describe('swap', () => {
       tokenIn: '0xTokenIn',
       amountIn: 1000000000000000000n, // 1 token
       amountOutMin: 990000000000000000n, // 0.99 token (1% slippage)
+      slippageBps: 100, // 1% slippage in basis points
       recipient: '0xRecipient',
       poolType: 'v2' as PoolLabel,
     };
@@ -175,6 +176,7 @@ describe('swap', () => {
         v3Params.tokenIn,
         v3Params.amountIn,
         v3Params.amountOutMin,
+        v3Params.slippageBps,
         v3Params.recipient
       );
       expect(mockSwapV2).not.toHaveBeenCalled();
