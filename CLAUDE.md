@@ -9,7 +9,26 @@ npx ts-node src/index.ts swap <TOKEN_ADDRESS> --amount 0.01
 
 ## Architecture
 
-**Swap через official PancakeSwap routers** — используем Uniswap V2 Router и PancakeSwap V3 SwapRouter.
+**Swap через official routers** — поддержка Legacy (V2 Router + V3 SwapRouter) и Universal Router.
+
+### Universal Router (рекомендуется)
+
+Enable via `USE_UNIVERSAL_ROUTER=true` in .env.
+
+```
+PancakeSwap Universal Router: 0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB
+Uniswap Universal Router:     0x5dc88340e1c5c6366864ee415d6034cadd1a9897
+```
+
+Router selection by `dexId`:
+- `uniswap*` → Uniswap Universal Router
+- `pancakeswap*` (default) → PancakeSwap Universal Router
+
+### Legacy Routers
+
+When `USE_UNIVERSAL_ROUTER=false` (default):
+- V2: PancakeSwap V2 Router (0x10ED43C718714eb63d5aA57B78B54704E256024E)
+- V3: PancakeSwap V3 SwapRouter (0x1b81D678ffb9C0263b24A97847620C99d213eB14)
 
 ```
 src/
@@ -61,13 +80,15 @@ function swapV3(address pool, address tokenIn, uint256 amountIn, uint256 amountO
 - Deadline: `DEADLINE_SECONDS` in .env, default 30 seconds
 - Min liquidity: `MIN_LIQUIDITY_USD` in .env, default $1000
 - Gas: +10-20% от base fee
+- Universal Router: `USE_UNIVERSAL_ROUTER=true` in .env, default false
 - Опция: `RPC_URL=https://rpc.48.club` (MEV-protected)
 
 ## Gotchas
 
-1. **НЕ фильтровать по dexId** — разные DEX'ы (biswap, apeswap, thena) используют одинаковые V2/V3 интерфейсы
-2. **Official routers** — используем PancakeSwap Router V2 и SwapRouter V3 (не custom контракт)
+1. **dexId используется для router selection** — `uniswap*` → Uniswap router, остальные → PancakeSwap
+2. **Фильтруем по labels** — разные DEX'ы используют одинаковые V2/V3 интерфейсы
 3. **Fee в V2 = 0.3%** — захардкожен в `getAmountOut`: `amountIn * 997 / 1000`
+4. **Universal Router** — рекомендуется, поддерживает V2+V3 через один контракт
 
 ## Reference Repos
 
