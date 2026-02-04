@@ -66,6 +66,7 @@ export interface SwapParams {
   recipient: string;        // Address to receive tokens
   poolType: PoolLabel;      // v2 or v3 - determines which router to use
   deadline: bigint;         // Unix timestamp when transaction expires
+  dexId?: string;           // DEX identifier from Dexscreener (e.g., 'pancakeswap', 'uniswap')
 }
 
 /**

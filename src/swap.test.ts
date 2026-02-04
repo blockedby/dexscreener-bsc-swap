@@ -3,13 +3,17 @@ import { JsonRpcProvider, Wallet, Contract, parseUnits } from 'ethers';
 import {
   calculateAmountOutMin,
   executeSwap,
+  executeUniversalSwap,
   getExpectedOutput,
   getGasParams,
   encodeExactInputSingle,
   encodeV2SwapCommand,
   encodeV3SwapCommand,
+  getUniversalRouterAddress,
   PANCAKESWAP_V2_ROUTER,
   PANCAKESWAP_V3_ROUTER,
+  PANCAKESWAP_UNIVERSAL_ROUTER,
+  UNISWAP_UNIVERSAL_ROUTER,
   DEFAULT_BASE_FEE_GWEI,
   BSC_PRIORITY_FEE_GWEI,
   GAS_FEE_BUFFER_PERCENT,
@@ -329,6 +333,33 @@ describe('swap', () => {
       );
 
       expect(result).toMatch(/^0x/);
+    });
+  });
+
+  describe('getUniversalRouterAddress', () => {
+    it('should return PancakeSwap router for pancakeswap_v2', () => {
+      expect(getUniversalRouterAddress('pancakeswap_v2')).toBe(PANCAKESWAP_UNIVERSAL_ROUTER);
+    });
+
+    it('should return PancakeSwap router for pancakeswap_v3', () => {
+      expect(getUniversalRouterAddress('pancakeswap_v3')).toBe(PANCAKESWAP_UNIVERSAL_ROUTER);
+    });
+
+    it('should return Uniswap router for uniswap_v3', () => {
+      expect(getUniversalRouterAddress('uniswap_v3')).toBe(UNISWAP_UNIVERSAL_ROUTER);
+    });
+
+    it('should return Uniswap router for uniswap_v2', () => {
+      expect(getUniversalRouterAddress('uniswap_v2')).toBe(UNISWAP_UNIVERSAL_ROUTER);
+    });
+
+    it('should fallback to PancakeSwap for unknown dexId', () => {
+      expect(getUniversalRouterAddress('biswap')).toBe(PANCAKESWAP_UNIVERSAL_ROUTER);
+      expect(getUniversalRouterAddress('unknown')).toBe(PANCAKESWAP_UNIVERSAL_ROUTER);
+    });
+
+    it('should fallback to PancakeSwap for undefined dexId', () => {
+      expect(getUniversalRouterAddress(undefined)).toBe(PANCAKESWAP_UNIVERSAL_ROUTER);
     });
   });
 
@@ -671,6 +702,131 @@ describe('swap', () => {
       const path = callArgs[1];
 
       expect(path).toEqual([WBNB_ADDRESS, mockSwapParams.tokenOut]);
+    });
+  });
+
+  describe('executeUniversalSwap', () => {
+    let mockProvider: JsonRpcProvider;
+    let mockWallet: Wallet;
+    let mockExecute: Mock;
+    let mockGetFeeData: Mock;
+
+    const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+    const validTokenOut = '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82';
+    const validRecipient = '0x1234567890123456789012345678901234567890';
+    const validPairAddress = '0xA527a61703D82139F8a06Bc30097cC9CAA2df5A6';
+
+    const mockConfig: Config = {
+      privateKey: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      rpcUrl: 'https://bsc-dataseed.binance.org/',
+      slippage: 1,
+      universalSwapAddress: '0x2222222222222222222222222222222222222222',
+      deadlineSeconds: 300,
+      minLiquidityUsd: 10000,
+    };
+
+    const mockSwapParams: SwapParams = {
+      pairAddress: validPairAddress,
+      tokenIn: WBNB_ADDRESS,
+      tokenOut: validTokenOut,
+      amountIn: 1000000000000000000n,
+      amountOutMin: 990000000000000000n,
+      slippageBps: 100,
+      recipient: validRecipient,
+      poolType: 'v2' as PoolLabel,
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 300),
+      dexId: 'pancakeswap_v2',
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+
+      mockGetFeeData = vi.fn().mockResolvedValue({
+        maxFeePerGas: parseUnits('5', 'gwei'),
+        maxPriorityFeePerGas: parseUnits('1', 'gwei'),
+      });
+
+      mockProvider = {
+        getFeeData: mockGetFeeData,
+      } as unknown as JsonRpcProvider;
+
+      mockExecute = vi.fn().mockResolvedValue({
+        hash: '0xUniversalRouterTxHash',
+        wait: vi.fn().mockResolvedValue({}),
+      });
+
+      mockWallet = {} as Wallet;
+
+      (Wallet as unknown as Mock).mockReturnValue(mockWallet);
+      (Contract as unknown as Mock).mockReturnValue({
+        execute: mockExecute,
+      });
+    });
+
+    it('should use PancakeSwap Universal Router for pancakeswap dexId', async () => {
+      await executeUniversalSwap(mockSwapParams, mockConfig, mockProvider);
+
+      expect(Contract).toHaveBeenCalledWith(
+        PANCAKESWAP_UNIVERSAL_ROUTER,
+        expect.any(Array),
+        mockWallet
+      );
+    });
+
+    it('should use Uniswap Universal Router for uniswap dexId', async () => {
+      const uniswapParams: SwapParams = { ...mockSwapParams, dexId: 'uniswap_v3' };
+
+      await executeUniversalSwap(uniswapParams, mockConfig, mockProvider);
+
+      expect(Contract).toHaveBeenCalledWith(
+        UNISWAP_UNIVERSAL_ROUTER,
+        expect.any(Array),
+        mockWallet
+      );
+    });
+
+    it('should call execute with V2 command for v2 poolType', async () => {
+      await executeUniversalSwap(mockSwapParams, mockConfig, mockProvider);
+
+      expect(mockExecute).toHaveBeenCalledWith(
+        expect.stringMatching(/^0x08/), // V2_SWAP_EXACT_IN command
+        expect.any(Array),
+        mockSwapParams.deadline,
+        expect.objectContaining({
+          value: mockSwapParams.amountIn,
+        })
+      );
+    });
+
+    it('should call execute with V3 command for v3 poolType', async () => {
+      const v3Params: SwapParams = { ...mockSwapParams, poolType: 'v3' };
+
+      await executeUniversalSwap(v3Params, mockConfig, mockProvider);
+
+      expect(mockExecute).toHaveBeenCalledWith(
+        expect.stringMatching(/^0x00/), // V3_SWAP_EXACT_IN command
+        expect.any(Array),
+        v3Params.deadline,
+        expect.objectContaining({
+          value: v3Params.amountIn,
+        })
+      );
+    });
+
+    it('should return transaction hash', async () => {
+      const result = await executeUniversalSwap(mockSwapParams, mockConfig, mockProvider);
+
+      expect(result).toBe('0xUniversalRouterTxHash');
+    });
+
+    it('should include gas params in transaction', async () => {
+      await executeUniversalSwap(mockSwapParams, mockConfig, mockProvider);
+
+      const callArgs = mockExecute.mock.calls[0];
+      const txOptions = callArgs[3];
+
+      expect(txOptions.maxFeePerGas).toBe(parseUnits('6', 'gwei')); // 5 * 1.2
+      expect(txOptions.maxPriorityFeePerGas).toBe(parseUnits('3', 'gwei'));
     });
   });
 });

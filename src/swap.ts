@@ -240,6 +240,24 @@ export function encodeExactInputSingle(
 }
 
 /**
+ * Map dexId to Universal Router address.
+ * Falls back to PancakeSwap for unknown dexId.
+ *
+ * @param dexId - DEX identifier from Dexscreener (e.g., 'pancakeswap_v2', 'uniswap_v3')
+ * @returns Universal Router address
+ */
+export function getUniversalRouterAddress(dexId?: string): string {
+  if (!dexId) return PANCAKESWAP_UNIVERSAL_ROUTER;
+
+  const normalized = dexId.toLowerCase();
+  if (normalized.startsWith('uniswap')) {
+    return UNISWAP_UNIVERSAL_ROUTER;
+  }
+  // PancakeSwap and all other DEXs use PancakeSwap router as fallback
+  return PANCAKESWAP_UNIVERSAL_ROUTER;
+}
+
+/**
  * Encode V3 path as bytes: tokenIn (20 bytes) + fee (3 bytes) + tokenOut (20 bytes)
  */
 function encodeV3Path(tokenIn: string, tokenOut: string, fee: number): string {
@@ -366,6 +384,65 @@ export async function executeSwap(
       }
     );
   }
+
+  return tx.hash;
+}
+
+/**
+ * Execute a swap using Universal Router.
+ * Supports both V2 and V3 pools via execute() function.
+ * Router is selected based on dexId (uniswap → Uniswap, else → PancakeSwap).
+ *
+ * @param params - Swap parameters including token addresses, amounts, deadline, dexId
+ * @param config - Configuration with private key
+ * @param provider - JSON RPC provider for BSC
+ * @returns Transaction hash of the swap transaction
+ */
+export async function executeUniversalSwap(
+  params: SwapParams,
+  config: Config,
+  provider: JsonRpcProvider
+): Promise<string> {
+  const wallet = new Wallet(config.privateKey, provider);
+  const gasParams = await getGasParams(provider);
+
+  // Select router based on dexId
+  const routerAddress = getUniversalRouterAddress(params.dexId);
+  const router = new Contract(routerAddress, UNIVERSAL_ROUTER_ABI, wallet);
+
+  // Build command and input based on pool type
+  let commands: string;
+  let inputs: string[];
+
+  if (params.poolType === 'v2') {
+    commands = '0x' + UNIVERSAL_ROUTER_COMMANDS.V2_SWAP_EXACT_IN.toString(16).padStart(2, '0');
+    inputs = [encodeV2SwapCommand(
+      params.recipient,
+      params.amountIn,
+      params.amountOutMin,
+      [WBNB_ADDRESS, params.tokenOut]
+    )];
+  } else {
+    commands = '0x' + UNIVERSAL_ROUTER_COMMANDS.V3_SWAP_EXACT_IN.toString(16).padStart(2, '0');
+    inputs = [encodeV3SwapCommand(
+      params.recipient,
+      params.amountIn,
+      params.amountOutMin,
+      WBNB_ADDRESS,
+      params.tokenOut,
+      DEFAULT_V3_POOL_FEE
+    )];
+  }
+
+  const tx = await router.execute(
+    commands,
+    inputs,
+    params.deadline,
+    {
+      value: params.amountIn,
+      ...gasParams,
+    }
+  );
 
   return tx.hash;
 }
