@@ -21,7 +21,7 @@ src/
 └── types.ts
 
 contracts/
-└── UniversalSwap.sol # V2 + V3 + V4 draft
+└── UniversalSwap.sol # V2 + V3
 ```
 
 ## Dexscreener Filtering
@@ -37,15 +37,11 @@ pairs
 
 - `labels: ["v2"]` — Uniswap V2 форк (любой DEX)
 - `labels: ["v3"]` — Uniswap V3 форк (любой DEX)
-- V4 пока не индексируется
 
 ## Контракты BSC
 
 ```
 WBNB: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
-
-# V4 PoolManager (для будущего V4)
-CLPoolManager: 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b
 ```
 
 ## UniversalSwap.sol Interface
@@ -56,9 +52,6 @@ function swapV2(address pair, address tokenIn, uint256 amountIn, uint256 amountO
 
 // V3 — pool.swap() напрямую
 function swapV3(address pool, address tokenIn, uint256 amountIn, uint256 amountOutMin, address recipient)
-
-// V4 — draft, не тестировался
-function swapV4(PoolKey calldata poolKey, uint256 amountIn, uint256 amountOutMin, address recipient)
 ```
 
 ## MEV Protection
@@ -71,14 +64,12 @@ function swapV4(PoolKey calldata poolKey, uint256 amountIn, uint256 amountOutMin
 
 1. **НЕ фильтровать по dexId** — разные DEX'ы (biswap, apeswap, thena) используют одинаковые V2/V3 интерфейсы
 2. **Router mapping не нужен** — свопаем через pair/pool напрямую
-3. **V4 не в Dexscreener** — код есть, но тестировать не на чем
-4. **Fee в V2 = 0.3%** — захардкожен в `getAmountOut`: `amountIn * 997 / 1000`
+3. **Fee в V2 = 0.3%** — захардкожен в `getAmountOut`: `amountIn * 997 / 1000`
 
 ## Reference Repos
 
 - V2 swap: https://github.com/codeesura/Arbitrage-uniswap-sushiswap
-- V3 swap: https://github.com/Uniswap/v4-periphery
-- V4 Infinity: https://github.com/pancakeswap/infinity-universal-router
+- V3 swap: https://github.com/Uniswap/v3-periphery
 - Dexscreener types: https://github.com/hedgey-finance/dexscreener-api
 
 ## Plan

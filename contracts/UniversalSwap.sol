@@ -31,32 +31,13 @@ interface IUniswapV3Pool {
     ) external returns (int256 amount0, int256 amount1);
 }
 
-// V4 interfaces (for future use)
-struct PoolKey {
-    address currency0;
-    address currency1;
-    uint24 fee;
-    int24 tickSpacing;
-    address hooks;
-}
-
-interface ICLPoolManager {
-    function swap(
-        PoolKey calldata key,
-        bool zeroForOne,
-        int256 amountSpecified,
-        uint160 sqrtPriceLimitX96,
-        bytes calldata hookData
-    ) external returns (int256 amount0, int256 amount1);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // UniversalSwap Contract
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /// @title UniversalSwap
 /// @notice Swap tokens via V2/V3 pools directly without router mapping
-/// @dev Works with any Uniswap V2/V3 fork (PancakeSwap, BiSwap, ApeSwap, Thena, etc.)
+/// @dev Works with any Uniswap V2/V3 fork on BSC (PancakeSwap, BiSwap, ApeSwap, Thena, etc.)
 contract UniversalSwap {
     // ═══════════════════════════════════════════════════════════════════════════
     // Errors
@@ -102,9 +83,6 @@ contract UniversalSwap {
 
     /// @dev Max sqrt price limit for V3 swaps (zeroForOne = false)
     uint160 private constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
-
-    /// @dev BSC CLPoolManager address for V4 (future use)
-    address public constant CL_POOL_MANAGER = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // State (for V3 callback)
@@ -380,50 +358,6 @@ contract UniversalSwap {
         bytes calldata data
     ) external {
         _handleV3Callback(amount0Delta, amount1Delta, data);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // V4 Swap (Draft - Not Tested)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// @notice Swap tokens via PancakeSwap V4 CLPoolManager
-    /// @dev DRAFT - Not tested. V4 is not yet indexed by Dexscreener.
-    /// @param poolKey The V4 pool key (currency0, currency1, fee, tickSpacing, hooks)
-    /// @param amountIn The amount of input tokens
-    /// @param amountOutMin Minimum output amount (slippage protection)
-    /// @param recipient The address to receive output tokens
-    /// @return amountOut The actual output amount
-    function swapV4(
-        PoolKey calldata poolKey,
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address recipient
-    ) external returns (uint256 amountOut) {
-        // Validation
-        if (amountIn == 0) revert ZeroAmount();
-        if (recipient == address(0)) revert ZeroAddress();
-
-        // TODO: Implement V4 swap when Dexscreener adds V4 support
-        // Reference: https://github.com/pancakeswap/infinity-universal-router
-        //
-        // Key differences from V3:
-        // 1. Uses PoolManager singleton instead of individual pool contracts
-        // 2. Requires unlock pattern: poolManager.unlock() then callback
-        // 3. Uses BalanceDelta for token accounting
-        // 4. Supports hooks for custom logic
-        //
-        // Pseudocode:
-        // 1. Transfer tokenIn from msg.sender to this contract
-        // 2. Approve PoolManager for tokenIn
-        // 3. Call poolManager.unlock(encodedSwapParams)
-        // 4. In unlockCallback:
-        //    a. Call poolManager.swap(poolKey, swapParams)
-        //    b. Settle tokenIn (poolManager.sync + transfer)
-        //    c. Take tokenOut (poolManager.take)
-        // 5. Transfer tokenOut to recipient
-        // 6. Verify amountOut >= amountOutMin
-
-        revert("V4 not implemented - awaiting Dexscreener support");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

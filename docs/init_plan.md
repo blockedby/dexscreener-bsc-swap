@@ -5,7 +5,7 @@
 CLI-бот на TypeScript который:
 1. Принимает адрес токена
 2. Через Dexscreener находит пулы на BSC
-3. Выбирает пул с максимальной ликвидностью (V2/V3/V4)
+3. Выбирает пул с максимальной ликвидностью (V2/V3)
 4. Выполняет swap (покупка токена за BNB)
 
 ## Стек
@@ -27,7 +27,7 @@ src/
 └── types.ts              # Типы
 
 contracts/
-└── UniversalSwap.sol     # Единый контракт V2/V3/V4
+└── UniversalSwap.sol     # Единый контракт V2/V3
 ```
 
 ## Архитектура: Swap через Pair напрямую
@@ -39,9 +39,9 @@ Dexscreener API → pairAddress + labels
                          ↓
               UniversalSwap.sol
                     ↓
-    ┌───────────────┼───────────────┐
-    v2              v3              v4
- pair.swap()    pool.swap()    poolManager.swap()
+         ┌──────────┴──────────┐
+         v2                    v3
+      pair.swap()          pool.swap()
 ```
 
 ## Контракты BSC Mainnet
@@ -51,9 +51,6 @@ WBNB: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
 
 # Наш контракт (после деплоя)
 UniversalSwap: 0x... (TBD)
-
-# V4 PoolManager (для V4 свопов)
-CLPoolManager: 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b
 ```
 
 > Router'ы не нужны — свопаем через pair/pool напрямую
@@ -83,16 +80,6 @@ contract UniversalSwap {
         uint256 amountOutMin,
         address recipient
     ) external returns (uint256 amountOut);
-
-    // ═══════════════════════════════════════════
-    // V4 — draft, не тестировался
-    // ═══════════════════════════════════════════
-    function swapV4(
-        PoolKey calldata poolKey,
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address recipient
-    ) external returns (uint256 amountOut);
 }
 ```
 
@@ -109,8 +96,6 @@ pairs
   .sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))
   [0]
 ```
-
-> **Note:** V4 пока не индексируется. Когда появится — добавить `"v4"` в фильтр.
 
 ## CLI Interface
 
@@ -165,28 +150,14 @@ UNIVERSAL_SWAP_ADDRESS=0x...
 | Компонент | Репо |
 |-----------|------|
 | V2 swap через pair | [codeesura/Arbitrage-uniswap-sushiswap](https://github.com/codeesura/Arbitrage-uniswap-sushiswap) |
-| V3 swap через pool | [Uniswap/v4-periphery](https://github.com/Uniswap/v4-periphery) |
-| V4 Infinity | [pancakeswap/infinity-universal-router](https://github.com/pancakeswap/infinity-universal-router) |
+| V3 swap через pool | [Uniswap/v3-periphery](https://github.com/Uniswap/v3-periphery) |
 | Dexscreener types | [hedgey-finance/dexscreener-api](https://github.com/hedgey-finance/dexscreener-api) |
 
 ---
 
-## TODO (человек)
+## TODO (optional)
 
-### V4 Implementation
-
-Адаптировать код из PancakeSwap Infinity Universal Router для swapV4:
-
-1. Изучить [pancakeswap/infinity-universal-router](https://github.com/pancakeswap/infinity-universal-router)
-2. Вырезать минимальный код для swap через PoolManager
-3. Интегрировать в UniversalSwap.sol
-4. **Не тестировать** — V4 пока не в Dexscreener
-
-Ключевые файлы:
-- `src/modules/Dispatcher.sol` — dispatch логика
-- `src/modules/pancakeswap/v4/V4SwapRouter.sol` — V4 swap
-
-### BSC DEXes router mapping (optional)
+### BSC DEXes router mapping
 
 Если понадобится fallback на router'ы:
 
