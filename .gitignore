@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+coverage/
+*.log
+contracts_UniversalSwap_sol_UniversalSwap.bin
+contracts_UniversalSwap_sol_ICLPoolManager.bin
+contracts_UniversalSwap_sol_IERC20.bin
+contracts_UniversalSwap_sol_IUniswapV2Pair.bin
+contracts_UniversalSwap_sol_IUniswapV3Pool.bin
