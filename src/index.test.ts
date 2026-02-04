@@ -245,4 +245,47 @@ describe('CLI index.ts', () => {
       expect(swapCall[0].recipient).toBeDefined();
     });
   });
+
+  describe('slippageBps conversion', () => {
+    it('should convert 1% slippage to 100 bps', async () => {
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].slippageBps).toBe(100);
+    });
+
+    it('should convert 2% slippage (CLI override) to 200 bps', async () => {
+      await runSwap('0xTokenAddress', '0.01', '2');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].slippageBps).toBe(200);
+    });
+
+    it('should convert 0.5% slippage to 50 bps', async () => {
+      const configWithFractionalSlippage = { ...mockConfig, slippage: 0.5 };
+      (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(configWithFractionalSlippage);
+
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].slippageBps).toBe(50);
+    });
+
+    it('should floor fractional bps (0.25% -> 25 bps)', async () => {
+      const configWithSmallSlippage = { ...mockConfig, slippage: 0.25 };
+      (loadConfig as ReturnType<typeof vi.fn>).mockReturnValue(configWithSmallSlippage);
+
+      await runSwap('0xTokenAddress', '0.01');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].slippageBps).toBe(25);
+    });
+
+    it('should handle 5% slippage (500 bps)', async () => {
+      await runSwap('0xTokenAddress', '0.01', '5');
+
+      const swapCall = (executeSwap as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(swapCall[0].slippageBps).toBe(500);
+    });
+  });
 });
