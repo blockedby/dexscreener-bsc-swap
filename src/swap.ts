@@ -323,12 +323,15 @@ export function encodeV2SwapCommand(
 
 /**
  * Execute a swap using PancakeSwap routers.
+ * If config.useUniversalRouter is true, uses Universal Router.
+ * Otherwise, uses legacy V2/V3 routers.
+ *
  * For V2: Uses swapExactETHForTokens which accepts native BNB and wraps internally.
  * For V3: Uses multicall with exactInputSingle, sending native BNB which the router wraps.
  * Both methods handle BNB wrapping automatically in one transaction.
  *
  * @param params - Swap parameters including token addresses, amounts, deadline
- * @param config - Configuration with private key (universalSwapAddress not needed for router swaps)
+ * @param config - Configuration with private key
  * @param provider - JSON RPC provider for BSC
  * @returns Transaction hash of the swap transaction
  */
@@ -337,6 +340,11 @@ export async function executeSwap(
   config: Config,
   provider: JsonRpcProvider
 ): Promise<string> {
+  // Use Universal Router if enabled
+  if (config.useUniversalRouter) {
+    return executeUniversalSwap(params, config, provider);
+  }
+
   // Create wallet from private key
   const wallet = new Wallet(config.privateKey, provider);
 

@@ -704,6 +704,25 @@ describe('swap', () => {
 
       expect(path).toEqual([WBNB_ADDRESS, mockSwapParams.tokenOut]);
     });
+
+    it('should use Universal Router when config.useUniversalRouter is true', async () => {
+      const mockExecute = vi.fn().mockResolvedValue({
+        hash: '0xUniversalRouterTxHash',
+        wait: vi.fn().mockResolvedValue({}),
+      });
+
+      (Contract as unknown as Mock).mockReturnValue({
+        execute: mockExecute,
+      });
+
+      const universalConfig: Config = { ...mockConfig, useUniversalRouter: true };
+      const paramsWithDexId: SwapParams = { ...mockSwapParams, dexId: 'pancakeswap_v2' };
+
+      const result = await executeSwap(paramsWithDexId, universalConfig, mockProvider);
+
+      expect(result).toBe('0xUniversalRouterTxHash');
+      expect(mockExecute).toHaveBeenCalled();
+    });
   });
 
   describe('executeUniversalSwap', () => {
