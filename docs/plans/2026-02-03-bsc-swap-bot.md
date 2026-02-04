@@ -154,7 +154,7 @@ Expected: FAIL - cannot find module '../src/types.js'
 
 ```typescript
 // src/types.ts
-export type PoolVersion = 'v2' | 'v3' | 'v4'
+export type PoolVersion = 'v2' | 'v3'
 
 export interface DexPair {
   chainId: string
@@ -557,7 +557,6 @@ export function findBestPool(pairs: DexPair[]): DexPair | null {
 
 export function getPoolVersion(pair: DexPair): PoolVersion {
   if (pair.labels?.includes('v3')) return 'v3'
-  if (pair.labels?.includes('v4')) return 'v4'
   return 'v2'
 }
 
@@ -1052,18 +1051,6 @@ contract UniversalSwap {
     }
 
     // ═══════════════════════════════════════════
-    // V4 SWAP (draft - not tested)
-    // ═══════════════════════════════════════════
-    function swapV4(
-        bytes calldata /* poolKey */,
-        uint256 /* amountIn */,
-        uint256 /* amountOutMin */,
-        address /* recipient */
-    ) external pure returns (uint256) {
-        revert("V4_NOT_IMPLEMENTED");
-    }
-
-    // ═══════════════════════════════════════════
     // HELPERS
     // ═══════════════════════════════════════════
     function _getAmountOut(
@@ -1081,7 +1068,7 @@ contract UniversalSwap {
 
 ```bash
 git add contracts/UniversalSwap.sol
-git commit -m "feat: add UniversalSwap contract (V2/V3, V4 stub)"
+git commit -m "feat: add UniversalSwap contract (V2/V3)"
 ```
 
 ---
