@@ -9,7 +9,7 @@ npx ts-node src/index.ts swap <TOKEN_ADDRESS> --amount 0.01
 
 ## Architecture
 
-**Swap через pair напрямую** — без router mapping. Контракт `UniversalSwap.sol` принимает `pairAddress` из Dexscreener.
+**Swap через official PancakeSwap routers** — используем Uniswap V2 Router и PancakeSwap V3 SwapRouter.
 
 ```
 src/
@@ -21,7 +21,7 @@ src/
 └── types.ts
 
 contracts/
-└── UniversalSwap.sol # V2 + V3
+└── UniversalSwap.sol # V2 + V3 (legacy, not used)
 ```
 
 ## Dexscreener Filtering
@@ -57,13 +57,16 @@ function swapV3(address pool, address tokenIn, uint256 amountIn, uint256 amountO
 ## MEV Protection
 
 - Slippage: CLI `--slippage` → .env `SLIPPAGE` → default `1%`
+  - Precision: 2 decimal places (0.01-99.99%)
+- Deadline: `DEADLINE_SECONDS` in .env, default 30 seconds
+- Min liquidity: `MIN_LIQUIDITY_USD` in .env, default $1000
 - Gas: +10-20% от base fee
 - Опция: `RPC_URL=https://rpc.48.club` (MEV-protected)
 
 ## Gotchas
 
 1. **НЕ фильтровать по dexId** — разные DEX'ы (biswap, apeswap, thena) используют одинаковые V2/V3 интерфейсы
-2. **Router mapping не нужен** — свопаем через pair/pool напрямую
+2. **Official routers** — используем PancakeSwap Router V2 и SwapRouter V3 (не custom контракт)
 3. **Fee в V2 = 0.3%** — захардкожен в `getAmountOut`: `amountIn * 997 / 1000`
 
 ## Reference Repos
