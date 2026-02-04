@@ -161,6 +161,7 @@ describe('config', () => {
         universalSwapAddress: '0xdef456',
         deadlineSeconds: 60,
         minLiquidityUsd: 5000,
+        useUniversalRouter: false,
       });
     });
 
@@ -254,6 +255,50 @@ describe('config', () => {
 
       expect(config.minLiquidityUsd).toBe(10000);
       expect(typeof config.minLiquidityUsd).toBe('number');
+    });
+
+    it('should use default USE_UNIVERSAL_ROUTER of false if not provided', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      delete process.env.USE_UNIVERSAL_ROUTER;
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.useUniversalRouter).toBe(false);
+    });
+
+    it('should parse USE_UNIVERSAL_ROUTER=true correctly', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.USE_UNIVERSAL_ROUTER = 'true';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.useUniversalRouter).toBe(true);
+    });
+
+    it('should parse USE_UNIVERSAL_ROUTER=TRUE case-insensitively', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.USE_UNIVERSAL_ROUTER = 'TRUE';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.useUniversalRouter).toBe(true);
+    });
+
+    it('should parse USE_UNIVERSAL_ROUTER=false correctly', async () => {
+      process.env.PRIVATE_KEY = '0x123';
+      process.env.UNIVERSAL_SWAP_ADDRESS = '0x456';
+      process.env.USE_UNIVERSAL_ROUTER = 'false';
+
+      const { loadConfig } = await import('./config');
+      const config = loadConfig();
+
+      expect(config.useUniversalRouter).toBe(false);
     });
   });
 

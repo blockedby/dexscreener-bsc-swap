@@ -55,6 +55,11 @@ const DEFAULT_DEADLINE_SECONDS = 30;
 const DEFAULT_MIN_LIQUIDITY_USD = 1000;
 
 /**
+ * Default: use Universal Router for swaps
+ */
+const DEFAULT_USE_UNIVERSAL_ROUTER = false;
+
+/**
  * Loads configuration from environment variables.
  * Calls dotenv.config() to load .env file, then validates required variables.
  *
@@ -95,6 +100,11 @@ export function loadConfig(): Config {
     ? parseFloat(process.env.MIN_LIQUIDITY_USD)
     : DEFAULT_MIN_LIQUIDITY_USD;
 
+  // Parse USE_UNIVERSAL_ROUTER as boolean
+  const useUniversalRouter = process.env.USE_UNIVERSAL_ROUTER
+    ? process.env.USE_UNIVERSAL_ROUTER.toLowerCase() === 'true'
+    : DEFAULT_USE_UNIVERSAL_ROUTER;
+
   return {
     privateKey: trimmedPrivateKey,
     rpcUrl: process.env.RPC_URL || DEFAULT_RPC_URL,
@@ -102,5 +112,6 @@ export function loadConfig(): Config {
     universalSwapAddress: process.env.UNIVERSAL_SWAP_ADDRESS,
     deadlineSeconds,
     minLiquidityUsd,
+    useUniversalRouter,
   };
 }

@@ -79,6 +79,7 @@ export interface Config {
   universalSwapAddress: string;
   deadlineSeconds: number;
   minLiquidityUsd: number;
+  useUniversalRouter: boolean;
 }
 
 /**

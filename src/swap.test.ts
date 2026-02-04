@@ -488,6 +488,7 @@ describe('swap', () => {
       universalSwapAddress: '0x2222222222222222222222222222222222222222',
       deadlineSeconds: 300,
       minLiquidityUsd: 10000,
+      useUniversalRouter: false,
     };
 
     const mockSwapParams: SwapParams = {
@@ -723,6 +724,7 @@ describe('swap', () => {
       universalSwapAddress: '0x2222222222222222222222222222222222222222',
       deadlineSeconds: 300,
       minLiquidityUsd: 10000,
+      useUniversalRouter: false,
     };
 
     const mockSwapParams: SwapParams = {
