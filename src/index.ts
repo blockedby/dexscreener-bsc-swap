@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { parseEther, JsonRpcProvider, Wallet } from 'ethers';
-import { loadConfig, WBNB_ADDRESS } from './config';
+import { loadConfig, WBNB_ADDRESS, validateSlippage } from './config';
 import { fetchPools, selectBestPool } from './dexscreener';
 import { executeSwap, calculateAmountOutMin, getExpectedOutput } from './swap';
 import { info, error } from './logger';
@@ -37,10 +37,11 @@ export async function runSwap(
   // Load configuration
   const config = loadConfig();
 
-  // Determine slippage: CLI override > config
-  const slippage = slippageOverride
+  // Determine slippage: CLI override > config, then validate
+  const rawSlippage = slippageOverride
     ? parseFloat(slippageOverride)
     : config.slippage;
+  const slippage = validateSlippage(rawSlippage);
 
   // Fetch pools from Dexscreener
   info(`Fetching pools for ${tokenAddress}...`);

@@ -1,16 +1,59 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
-import { fetchPools, selectBestPool } from './dexscreener';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import axios, { AxiosError } from 'axios';
+import { fetchPools, selectBestPool, withRetry, DexscreenerApiError } from './dexscreener';
 import { DexscreenerPair, PoolInfo } from './types';
+import * as logger from './logger';
 
 // Mock axios
-vi.mock('axios');
+vi.mock('axios', async () => {
+  const actual = await vi.importActual('axios');
+  return {
+    ...actual,
+    default: {
+      get: vi.fn(),
+      isAxiosError: (error: unknown) => error instanceof AxiosError || (error as { isAxiosError?: boolean })?.isAxiosError === true,
+    },
+  };
+});
+
+// Mock logger
+vi.mock('./logger', () => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+}));
+
 const mockedAxios = vi.mocked(axios);
+const mockedLogger = vi.mocked(logger);
+
+// Helper to create mock AxiosError
+function createAxiosError(
+  code?: string,
+  status?: number,
+  message: string = 'Test error'
+): AxiosError {
+  const error = new AxiosError(message, code);
+  if (status) {
+    error.response = {
+      status,
+      statusText: 'Error',
+      headers: {},
+      config: {} as never,
+      data: {},
+    };
+  }
+  return error;
+}
 
 describe('dexscreener', () => {
   describe('fetchPools', () => {
     beforeEach(() => {
       vi.clearAllMocks();
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
     });
 
     it('should fetch pools for a given token address', async () => {
@@ -32,7 +75,8 @@ describe('dexscreener', () => {
       const result = await fetchPools('0xtoken');
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://api.dexscreener.com/latest/dex/tokens/0xtoken'
+        'https://api.dexscreener.com/latest/dex/tokens/0xtoken',
+        { timeout: 5000 }
       );
       expect(result).toEqual(mockPairs);
     });
@@ -53,11 +97,245 @@ describe('dexscreener', () => {
       expect(result).toEqual([]);
     });
 
-    it('should propagate axios errors', async () => {
-      const error = new Error('Network error');
+    it('should include 5 second timeout in request', async () => {
+      mockedAxios.get.mockResolvedValue({ data: { pairs: [] } });
+
+      await fetchPools('0xtoken');
+
+      expect(mockedAxios.get).toHaveBeenCalledWith(
+        expect.any(String),
+        { timeout: 5000 }
+      );
+    });
+
+    it('should retry on timeout error with exponential backoff', async () => {
+      const timeoutError = createAxiosError('ECONNABORTED');
+      mockedAxios.get
+        .mockRejectedValueOnce(timeoutError)
+        .mockRejectedValueOnce(timeoutError)
+        .mockResolvedValueOnce({ data: { pairs: [] } });
+
+      const promise = fetchPools('0xtoken');
+
+      // First retry delay (1s)
+      await vi.advanceTimersByTimeAsync(1000);
+      // Second retry delay (2s)
+      await vi.advanceTimersByTimeAsync(2000);
+
+      const result = await promise;
+
+      expect(result).toEqual([]);
+      expect(mockedAxios.get).toHaveBeenCalledTimes(3);
+      expect(mockedLogger.warn).toHaveBeenCalledTimes(2);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Dexscreener API timeout, retrying...')
+      );
+    });
+
+    it('should retry on 429 rate limit error', async () => {
+      const rateLimitError = createAxiosError('ERR_BAD_REQUEST', 429);
+      mockedAxios.get
+        .mockRejectedValueOnce(rateLimitError)
+        .mockResolvedValueOnce({ data: { pairs: [] } });
+
+      const promise = fetchPools('0xtoken');
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      const result = await promise;
+
+      expect(result).toEqual([]);
+      expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Rate limited, waiting...')
+      );
+    });
+
+    it('should retry on 5xx server errors', async () => {
+      const serverError = createAxiosError('ERR_BAD_RESPONSE', 503);
+      mockedAxios.get
+        .mockRejectedValueOnce(serverError)
+        .mockResolvedValueOnce({ data: { pairs: [] } });
+
+      const promise = fetchPools('0xtoken');
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      const result = await promise;
+
+      expect(result).toEqual([]);
+      expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Server error, retrying...')
+      );
+    });
+
+    it('should retry on network errors (ENOTFOUND)', async () => {
+      const networkError = createAxiosError('ENOTFOUND');
+      mockedAxios.get
+        .mockRejectedValueOnce(networkError)
+        .mockResolvedValueOnce({ data: { pairs: [] } });
+
+      const promise = fetchPools('0xtoken');
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      const result = await promise;
+
+      expect(result).toEqual([]);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Network error, check connection')
+      );
+    });
+
+    it('should throw DexscreenerApiError after max retries exhausted', async () => {
+      const timeoutError = createAxiosError('ECONNABORTED');
+      mockedAxios.get.mockRejectedValue(timeoutError);
+
+      let caughtError: Error | undefined;
+      const promise = fetchPools('0xtoken').catch((err) => {
+        caughtError = err;
+      });
+
+      // Advance through all retries (1s + 2s + 4s)
+      await vi.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(2000);
+      await vi.advanceTimersByTimeAsync(4000);
+
+      await promise;
+
+      expect(caughtError).toBeInstanceOf(DexscreenerApiError);
+      expect(caughtError?.message).toContain('Dexscreener API timeout');
+      expect(mockedAxios.get).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
+    });
+
+    it('should not retry on 4xx client errors (except 429)', async () => {
+      const clientError = createAxiosError('ERR_BAD_REQUEST', 400);
+      mockedAxios.get.mockRejectedValue(clientError);
+
+      await expect(fetchPools('0xtoken')).rejects.toThrow(DexscreenerApiError);
+      expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+      expect(mockedLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should propagate non-axios errors without retry', async () => {
+      const error = new Error('Unexpected error');
       mockedAxios.get.mockRejectedValue(error);
 
-      await expect(fetchPools('0xtoken')).rejects.toThrow('Network error');
+      await expect(fetchPools('0xtoken')).rejects.toThrow('Unexpected error');
+      expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use exponential backoff delays (1s, 2s, 4s)', async () => {
+      const timeoutError = createAxiosError('ECONNABORTED');
+      mockedAxios.get
+        .mockRejectedValueOnce(timeoutError)
+        .mockRejectedValueOnce(timeoutError)
+        .mockRejectedValueOnce(timeoutError)
+        .mockResolvedValueOnce({ data: { pairs: [] } });
+
+      const promise = fetchPools('0xtoken');
+
+      // First delay: 1000ms
+      expect(mockedLogger.warn).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('waiting 1000ms')
+      );
+
+      // Second delay: 2000ms
+      await vi.advanceTimersByTimeAsync(2000);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('waiting 2000ms')
+      );
+
+      // Third delay: 4000ms
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('waiting 4000ms')
+      );
+
+      await promise;
+    });
+  });
+
+  describe('withRetry', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should return result on first success', async () => {
+      const fn = vi.fn().mockResolvedValue('success');
+
+      const result = await withRetry(fn);
+
+      expect(result).toBe('success');
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should respect custom maxRetries parameter', async () => {
+      const error = createAxiosError('ECONNABORTED');
+      const fn = vi.fn().mockRejectedValue(error);
+
+      let caughtError: Error | undefined;
+      const promise = withRetry(fn, 1, 100).catch((err) => {
+        caughtError = err;
+      });
+
+      await vi.advanceTimersByTimeAsync(100);
+
+      await promise;
+
+      expect(caughtError).toBeInstanceOf(DexscreenerApiError);
+      expect(fn).toHaveBeenCalledTimes(2); // 1 initial + 1 retry
+    });
+
+    it('should respect custom baseDelayMs parameter', async () => {
+      const error = createAxiosError('ECONNABORTED');
+      const fn = vi.fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('success');
+
+      const promise = withRetry(fn, 3, 500);
+
+      await vi.advanceTimersByTimeAsync(500);
+
+      const result = await promise;
+
+      expect(result).toBe('success');
+      expect(mockedLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('waiting 500ms')
+      );
+    });
+  });
+
+  describe('DexscreenerApiError', () => {
+    it('should have correct name property', () => {
+      const error = new DexscreenerApiError('test message');
+      expect(error.name).toBe('DexscreenerApiError');
+    });
+
+    it('should store statusCode when provided', () => {
+      const error = new DexscreenerApiError('test', 429);
+      expect(error.statusCode).toBe(429);
+    });
+
+    it('should store isRetryable flag', () => {
+      const retryable = new DexscreenerApiError('test', 500, true);
+      const notRetryable = new DexscreenerApiError('test', 400, false);
+
+      expect(retryable.isRetryable).toBe(true);
+      expect(notRetryable.isRetryable).toBe(false);
+    });
+
+    it('should default isRetryable to false', () => {
+      const error = new DexscreenerApiError('test');
+      expect(error.isRetryable).toBe(false);
     });
   });
 

@@ -172,4 +172,78 @@ describe('config', () => {
       expect(typeof config.slippage).toBe('number');
     });
   });
+
+  describe('validateSlippage', () => {
+    it('should return valid slippage value', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(1)).toBe(1);
+      expect(validateSlippage(0.5)).toBe(0.5);
+      expect(validateSlippage(2.5)).toBe(2.5);
+      expect(validateSlippage(50)).toBe(50);
+    });
+
+    it('should accept minimum valid slippage (0.01)', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(0.01)).toBe(0.01);
+    });
+
+    it('should accept maximum valid slippage (99.99)', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(99.99)).toBe(99.99);
+    });
+
+    it('should throw error for NaN', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(() => validateSlippage(NaN)).toThrow('Invalid slippage: not a number');
+    });
+
+    it('should throw error for slippage below minimum (0.01)', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(() => validateSlippage(0)).toThrow('Slippage must be between 0.01% and 99.99%');
+      expect(() => validateSlippage(0.009)).toThrow('Slippage must be between 0.01% and 99.99%');
+      expect(() => validateSlippage(-1)).toThrow('Slippage must be between 0.01% and 99.99%');
+    });
+
+    it('should throw error for slippage above maximum (99.99)', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(() => validateSlippage(100)).toThrow('Slippage must be between 0.01% and 99.99%');
+      expect(() => validateSlippage(99.991)).toThrow('Slippage must be between 0.01% and 99.99%');
+      expect(() => validateSlippage(150)).toThrow('Slippage must be between 0.01% and 99.99%');
+    });
+
+    it('should throw error for more than 2 decimal places', async () => {
+      const { validateSlippage } = await import('./config');
+      // Use values within bounds (0.01-99.99) but with more than 2 decimals
+      expect(() => validateSlippage(1.234)).toThrow('Slippage must have at most 2 decimal places');
+      expect(() => validateSlippage(5.555)).toThrow('Slippage must have at most 2 decimal places');
+      expect(() => validateSlippage(10.123)).toThrow('Slippage must have at most 2 decimal places');
+    });
+
+    it('should throw bounds error for values like 0.001 (below min)', async () => {
+      const { validateSlippage } = await import('./config');
+      // 0.001 is below the minimum 0.01, so bounds check fails first
+      expect(() => validateSlippage(0.001)).toThrow('Slippage must be between 0.01% and 99.99%');
+    });
+
+    it('should accept integer values within bounds', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(1)).toBe(1);
+      expect(validateSlippage(10)).toBe(10);
+      expect(validateSlippage(99)).toBe(99);
+    });
+
+    it('should accept values with 1 decimal place', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(0.1)).toBe(0.1);
+      expect(validateSlippage(1.5)).toBe(1.5);
+      expect(validateSlippage(50.5)).toBe(50.5);
+    });
+
+    it('should accept values with exactly 2 decimal places', async () => {
+      const { validateSlippage } = await import('./config');
+      expect(validateSlippage(0.01)).toBe(0.01);
+      expect(validateSlippage(1.25)).toBe(1.25);
+      expect(validateSlippage(99.99)).toBe(99.99);
+    });
+  });
 });

@@ -5,6 +5,7 @@ import type { Config, DexscreenerPair, PoolInfo } from './types';
 vi.mock('./config', () => ({
   loadConfig: vi.fn(),
   WBNB_ADDRESS: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+  validateSlippage: vi.fn((value: number) => value),
 }));
 
 vi.mock('./dexscreener', () => ({
