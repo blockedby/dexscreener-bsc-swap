@@ -175,8 +175,14 @@ program
   .option('--slippage <percent>', 'Slippage tolerance (default: from config or 1%)')
   .action(async (tokenAddress: string, options: { amount: string; slippage?: string }) => {
     try {
+      info(`Starting swap: ${tokenAddress} amount=${options.amount} slippage=${options.slippage ?? 'default'}`);
       await runSwap(tokenAddress, options.amount, options.slippage);
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      error(`Fatal: ${msg}`);
+      if (err instanceof Error && err.stack) {
+        console.error(err.stack);
+      }
       process.exit(1);
     }
   });

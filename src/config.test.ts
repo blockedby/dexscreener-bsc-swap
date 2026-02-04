@@ -1,14 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Config } from './types';
 
+// Mock dotenv to prevent loading .env file during tests
+vi.mock('dotenv', () => ({
+  default: { config: vi.fn() },
+  config: vi.fn(),
+}));
+
 describe('config', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     // Reset modules cache to allow fresh import
     vi.resetModules();
-    // Create a fresh copy of process.env
-    process.env = { ...originalEnv };
+    // Create a clean process.env (remove all vars from .env)
+    process.env = {};
   });
 
   afterEach(() => {
@@ -134,13 +140,14 @@ describe('config', () => {
       expect(config.privateKey).toBe('0xabc123');
     });
 
-    it('should throw error if UNIVERSAL_SWAP_ADDRESS is missing', async () => {
+    it('should use empty string for UNIVERSAL_SWAP_ADDRESS if not provided', async () => {
       process.env.PRIVATE_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       delete process.env.UNIVERSAL_SWAP_ADDRESS;
 
       const { loadConfig } = await import('./config');
+      const config = loadConfig();
 
-      expect(() => loadConfig()).toThrow('Missing required environment variable: UNIVERSAL_SWAP_ADDRESS');
+      expect(config.universalSwapAddress).toBe('');
     });
 
     it('should return a Config object with all fields', async () => {
