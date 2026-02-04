@@ -121,6 +121,23 @@ const PANCAKESWAP_V3_ROUTER_ABI = [
 ];
 
 /**
+ * ABI for PancakeSwap Universal Router - execute function
+ */
+const UNIVERSAL_ROUTER_ABI = [
+  {
+    name: 'execute',
+    type: 'function',
+    inputs: [
+      { name: 'commands', type: 'bytes' },
+      { name: 'inputs', type: 'bytes[]' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'payable',
+  },
+];
+
+/**
  * Get expected output amount from PancakeSwap V2 Router.
  * Calls router.getAmountsOut() to calculate expected output for a swap.
  *
