@@ -67,7 +67,17 @@ export async function runSwap(
   const wallet = new Wallet(config.privateKey, provider);
 
   // Parse amount to wei
-  const amountIn = parseEther(amount);
+  let amountIn: bigint;
+  try {
+    amountIn = parseEther(amount);
+  } catch {
+    throw new Error(`Invalid amount format: '${amount}'. Use decimal notation like '0.01'`);
+  }
+
+  // Validate amount is greater than 0
+  if (amountIn <= 0n) {
+    throw new Error('Amount must be greater than 0');
+  }
 
   // Convert slippage to basis points (1% = 100 bps)
   const slippageBps = Math.floor(slippage * 100);

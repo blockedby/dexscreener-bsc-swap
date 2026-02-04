@@ -272,6 +272,58 @@ describe('CLI index.ts', () => {
 
       expect(parseEther).toHaveBeenCalledWith('1');
     });
+
+    it('should throw error when amount is 0', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockReturnValue(0n);
+
+      await expect(runSwap('0xTokenAddress', '0')).rejects.toThrow(
+        'Amount must be greater than 0'
+      );
+    });
+
+    it('should throw error when amount is negative', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockReturnValue(-1n);
+
+      await expect(runSwap('0xTokenAddress', '-1')).rejects.toThrow(
+        'Amount must be greater than 0'
+      );
+    });
+
+    it('should not throw when amount is positive', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockReturnValue(BigInt(1e18));
+
+      await expect(runSwap('0xTokenAddress', '1')).resolves.not.toThrow();
+    });
+
+    it('should throw user-friendly error for non-numeric amount "abc"', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        throw new Error('invalid numeric string');
+      });
+
+      await expect(runSwap('0xTokenAddress', 'abc')).rejects.toThrow(
+        "Invalid amount format: 'abc'. Use decimal notation like '0.01'"
+      );
+    });
+
+    it('should throw user-friendly error for malformed decimal "1.2.3"', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        throw new Error('invalid numeric string');
+      });
+
+      await expect(runSwap('0xTokenAddress', '1.2.3')).rejects.toThrow(
+        "Invalid amount format: '1.2.3'. Use decimal notation like '0.01'"
+      );
+    });
+
+    it('should throw user-friendly error for empty string amount', async () => {
+      (parseEther as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        throw new Error('invalid numeric string');
+      });
+
+      await expect(runSwap('0xTokenAddress', '')).rejects.toThrow(
+        "Invalid amount format: ''. Use decimal notation like '0.01'"
+      );
+    });
   });
 
   describe('wallet recipient', () => {
